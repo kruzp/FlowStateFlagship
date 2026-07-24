@@ -92,6 +92,8 @@
     margin: 14px 0;
   }
 
+  #debug-panel.hidden { display: none; }
+
   #hint {
     position: fixed;
     top: 24px;
@@ -115,7 +117,7 @@
 </head>
 <body>
 
-  <div id="hint">move your cursor near the shape</div>
+  <div id="hint">move your cursor near the shape — press "h" to hide panel</div>
   <div id="version-tag">Equilibrium v0.2.2</div>
 
   <div id="stage">
@@ -778,6 +780,10 @@
   bindSlider('lightlag', 'lightPositionSmoothing', (v) => v.toFixed(2));
   bindSlider('midoffset', 'midStopOffset');
   bindSlider('midfactor', 'midStopBrightnessFactor', (v) => v.toFixed(2));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'h') document.getElementById('debug-panel').classList.toggle('hidden');
+  });
 </script>
 
 </body>
