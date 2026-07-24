@@ -3,11 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flowstate OS — Equilibrium Prototype</title>
+<title>Flowstate OS — Equilibrium v0.2.0</title>
 <style>
   :root {
     --bg: #0a0a0c;
-    --accent: #2ee6a6;
     --ink-secondary: #6b6f76;
     --ink-tertiary: #3a3d42;
   }
@@ -22,9 +21,6 @@
     font-family: -apple-system, "Manrope", system-ui, sans-serif;
   }
 
-  /* Full-viewport pointer-tracking stage. The shape sits centered inside it;
-     we listen for pointer movement across the WHOLE stage (not just over the
-     shape) so it can respond to "nearby" cursor movement, per spec. */
   #stage {
     position: relative;
     width: 100vw;
@@ -32,7 +28,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    touch-action: none; /* prevent scroll/zoom gestures from eating our touch events */
+    touch-action: none;
   }
 
   #equilibrium-svg {
@@ -42,12 +38,11 @@
     overflow: visible;
   }
 
+  /* fill is set dynamically per-frame from render() — see color-as-state */
   #droplet-path {
-    fill: var(--accent);
+    fill: #2ee6a6;
   }
 
-  /* --- Debug panel: exists ONLY for this tuning-by-feel prototype phase.
-     Not part of the eventual component — strip entirely once we lock values. --- */
   #debug-panel {
     position: fixed;
     bottom: 20px;
@@ -60,6 +55,8 @@
     color: var(--ink-secondary);
     width: 260px;
     backdrop-filter: blur(6px);
+    max-height: 80vh;
+    overflow-y: auto;
   }
 
   #debug-panel h2 {
@@ -71,9 +68,7 @@
     font-weight: 600;
   }
 
-  .control {
-    margin-bottom: 12px;
-  }
+  .control { margin-bottom: 12px; }
 
   .control label {
     display: flex;
@@ -82,13 +77,19 @@
   }
 
   .control span {
-    color: var(--accent);
+    color: #2ee6a6;
     font-variant-numeric: tabular-nums;
   }
 
   .control input[type="range"] {
     width: 100%;
-    accent-color: var(--accent);
+    accent-color: #2ee6a6;
+  }
+
+  .section-divider {
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    margin: 14px 0;
   }
 
   #hint {
@@ -100,11 +101,22 @@
     font-size: 13px;
     letter-spacing: 0.02em;
   }
+
+  #version-tag {
+    position: fixed;
+    top: 20px;
+    right: 24px;
+    color: var(--ink-tertiary);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+  }
 </style>
 </head>
 <body>
 
   <div id="hint">move your cursor near the shape</div>
+  <div id="version-tag">Equilibrium v0.2.0</div>
 
   <div id="stage">
     <svg id="equilibrium-svg" viewBox="0 0 340 340">
@@ -113,11 +125,11 @@
   </div>
 
   <div id="debug-panel">
-    <h2>Tuning — Equilibrium</h2>
+    <h2>Tuning — Physics (baseline, locked from v0.1.0)</h2>
 
     <div class="control">
       <label>Stiffness (k) <span id="val-stiffness"></span></label>
-      <input type="range" id="stiffness" min="20" max="400" step="1">
+      <input type="range" id="stiffness" min="10" max="400" step="1">
     </div>
 
     <div class="control">
@@ -127,52 +139,101 @@
 
     <div class="control">
       <label>Impulse strength <span id="val-impulse"></span></label>
-      <input type="range" id="impulse" min="0" max="4" step="0.05">
-    </div>
-
-    <div class="control">
-      <label>Influence radius <span id="val-influence"></span></label>
-      <input type="range" id="influence" min="60" max="400" step="5">
+      <input type="range" id="impulse" min="0" max="6" step="0.05">
     </div>
 
     <div class="control">
       <label>Idle noise amplitude <span id="val-noise"></span></label>
       <input type="range" id="noise" min="0" max="20" step="0.5">
     </div>
+
+    <hr class="section-divider">
+    <h2>Tuning — New in v0.2.0</h2>
+
+    <div class="control">
+      <label>Influence radius <span id="val-influence"></span></label>
+      <input type="range" id="influence" min="60" max="500" step="5">
+    </div>
+
+    <div class="control">
+      <label>Falloff exponent <span id="val-falloff"></span></label>
+      <input type="range" id="falloff" min="1" max="6" step="0.1">
+    </div>
+
+    <div class="control">
+      <label>Color energy sensitivity <span id="val-colorsens"></span></label>
+      <input type="range" id="colorsens" min="0.2" max="4" step="0.1">
+    </div>
   </div>
 
 <script>
 /* ============================================================================
-   FLOWSTATE OS — EQUILIBRIUM PRIMITIVE (Prototype v0)
+   FLOWSTATE OS — EQUILIBRIUM PRIMITIVE
+   v0.2.0
    ----------------------------------------------------------------------------
-   This file intentionally flattens the four-layer architecture we agreed on
-   (Physics / InputAdapter / SvgRenderer / EquilibriumField orchestrator) into
-   one file, for speed of iteration. Each section below is commented with the
-   module it will become once we refactor. Nothing here is precious — the
-   goal of THIS pass is only to find numbers and behavior that feel right.
+   CHANGELOG (v0.1.0 -> v0.2.0)
+
+   1. Falloff curve reshaped from linear/smoothstep to an exponential
+      ease-in curve (proximity^falloffExponent). Same 400px influence
+      radius as the tuned baseline, but far-field influence is now much
+      weaker — the shape should read as "aware from a distance" without
+      feeling continuously disturbed. WHY: user feedback that a large,
+      linear-falloff radius left the shape rarely fully at rest, which
+      undercuts the "seeking equilibrium" premise (nothing reads as
+      "returning to balance" if it's never settled).
+
+   2. Point count raised 10 -> 14. WHY: at low stiffness + strong impulse,
+      the near-side leading edge can facet slightly under strong
+      deformation, since that's where curvature is tightest and the
+      spline has the fewest samples to work with. Cost is negligible
+      (a few more floats on one path per frame) — no real tradeoff.
+
+   3. Color-as-state: fill color now derives from a smoothed "energy"
+      metric (blend of average |offset| and average |velocity| across
+      all points), mapped to a small HSL saturation/lightness shift.
+      WHY: directly implements "green communicates momentum, not
+      decoration" — the color state is read from the SAME physics state
+      already driving the shape, not a separate effect layered on top.
+
+   Explicitly NOT done this iteration (by agreement): motion trails,
+   glow/bloom, blur, drop shadow. Shadow decision deferred to homepage
+   context.
+
+   Baseline physics values carried forward unchanged from v0.1.0 tuning:
+   stiffness 30, damping 12, impulseScale 3.75, influenceRadius 400,
+   noiseAmplitude 10 (documented candidate for a future "Calm" preset).
+
+   OPEN QUESTIONS / IDEAS FOR NEXT ITERATION
+   - Confirm the falloff exponent default (2.4) actually solves the
+     "always slightly disturbed" issue, or whether it needs to be paired
+     with a mild radius reduction after all.
+   - Consider whether point count should be live-adjustable for A/B
+     comparison, or stays a structural/config-time decision.
+   - Color energy normalization is a hand-tuned constant right now, not
+     derived — worth revisiting once the component is judged in the
+     actual homepage's lighting/background context rather than isolation.
    ============================================================================ */
 
 
   /* --------------------------------------------------------------------
-     CONFIG — every tunable constant lives here. This becomes the public
-     API surface of the eventual component (props / preset object).
+     CONFIG
      -------------------------------------------------------------------- */
   const CONFIG = {
-    pointCount: 10,        // control points around the shape
-    baseRadius: 80,        // resting radius, in SVG units
-    stiffness: 120,        // spring constant (k)
-    damping: 14,           // damping coefficient (c) — underdamped by default
-    impulseScale: 1.2,     // how strongly pointer speed injects energy
-    influenceRadius: 220,  // px beyond which cursor has ~no effect
-    noiseAmplitude: 8,     // idle "breathing" displacement, in SVG units
-    velocitySmoothing: 0.25, // EMA factor for pointer velocity (0-1, higher = snappier)
-    velocityDecay: 0.90,   // per-frame decay applied to pointer velocity when idle
-    fixedTimestep: 1 / 120 // physics integrates at a fixed rate, decoupled from display refresh
+    pointCount: 14,          // v0.2.0: raised from 10 for curve fidelity under strong deformation
+    baseRadius: 80,
+    stiffness: 30,            // tuned baseline from v0.1.0 session
+    damping: 12,               // tuned baseline — lands near critical damping (ζ ≈ 1.1) at this stiffness
+    impulseScale: 3.75,
+    influenceRadius: 400,
+    falloffExponent: 2.4,     // v0.2.0: NEW — shapes the falloff curve, see stepPhysics()
+    noiseAmplitude: 10,
+    velocitySmoothing: 0.25,
+    velocityDecay: 0.90,
+    fixedTimestep: 1 / 120,
+    colorEnergySensitivity: 1.0 // v0.2.0: NEW — see energy/color section
   };
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // Per our agreed interpretation: ambient idle motion is disabled entirely
-  // under reduced motion, but direct interaction remains — just attenuated.
   if (reducedMotion) {
     CONFIG.noiseAmplitude = 0;
     CONFIG.impulseScale *= 0.4;
@@ -180,18 +241,7 @@
 
 
   /* --------------------------------------------------------------------
-     NOISE — a small, dependency-free 1D value-noise function.
-     This becomes physics/noise.js.
-
-     Why not a plain sine wave: a single oscillator has a fixed period, and
-     a patient viewer (or a looping screen recording) will eventually clock
-     the repeat. Value noise interpolated between pseudo-random hash values
-     has no fixed period within any realistic viewing session.
-
-     This is a cheap "shader-style" hash noise — good enough to prove the
-     feel out. If it ever reads as too regular once we're staring at it for
-     real, swapping in a proper simplex noise implementation is a drop-in
-     replacement for this one function.
+     NOISE (unchanged from v0.1.0)
      -------------------------------------------------------------------- */
   function hash1(n) {
     const x = Math.sin(n * 12.9898) * 43758.5453;
@@ -203,57 +253,45 @@
     const f = x - i;
     const a = hash1(i);
     const b = hash1(i + 1);
-    const u = f * f * (3 - 2 * f); // smoothstep — avoids linear-interpolation kinks
-    return a + (b - a) * u; // returns [0, 1)
+    const u = f * f * (3 - 2 * f);
+    return a + (b - a) * u;
   }
 
-  // Layered octaves at incommensurate frequencies, so no combined period
-  // emerges. `phase` is per-point, so points don't breathe in unison.
   function idleOffset(t, phase) {
     const n1 = valueNoise1D(t * 0.021 + phase) * 2 - 1;
     const n2 = valueNoise1D(t * 0.057 + phase * 1.7) * 2 - 1;
     const n3 = valueNoise1D(t * 0.133 + phase * 2.3) * 2 - 1;
-    return (n1 * 1.0 + n2 * 0.5 + n3 * 0.25) / 1.75; // normalized to roughly [-1, 1]
+    return (n1 * 1.0 + n2 * 0.5 + n3 * 0.25) / 1.75;
   }
 
 
   /* --------------------------------------------------------------------
-     POINT STATE — this becomes physics/EquilibriumField state.
-     Each point has ONE degree of freedom: radial offset from baseRadius.
-     (The shape is roughly circular at rest, so we don't need full x/y
-     springs per point — this halves the simulated state.)
+     POINT STATE
      -------------------------------------------------------------------- */
   const points = [];
   for (let i = 0; i < CONFIG.pointCount; i++) {
     points.push({
       angle: (i / CONFIG.pointCount) * Math.PI * 2,
-      offset: 0,     // current radial displacement from baseRadius
-      velocity: 0,   // current radial velocity
-      phase: i * 1.37 // arbitrary per-point phase offset for noise decorrelation
+      offset: 0,
+      velocity: 0,
+      phase: i * 1.37
     });
   }
 
 
   /* --------------------------------------------------------------------
-     INPUT ADAPTER — this becomes input/PointerAdapter.
-     Tracks pointer position + a smoothed velocity estimate. We deliberately
-     compute VELOCITY (not just position) because the whole interaction
-     model is energy-coupled: a slow approach barely disturbs the shape,
-     a fast swipe genuinely does. Position alone can't express that.
+     INPUT ADAPTER (unchanged from v0.1.0)
      -------------------------------------------------------------------- */
   const svg = document.getElementById('equilibrium-svg');
   const stage = document.getElementById('stage');
 
-  let pointerPos = { x: 170, y: 170 }; // in SVG-local coordinates, default = center
+  let pointerPos = { x: 170, y: 170 };
   let pointerVel = { x: 0, y: 0 };
   let lastPointerPos = null;
   let lastPointerTime = null;
-  let pointerActive = false; // true while touch is down; mouse doesn't need this gate
 
   function toLocalCoords(clientX, clientY) {
     const rect = svg.getBoundingClientRect();
-    // svg is drawn 1:1 with its viewBox (340x340 CSS px == 340x340 viewBox units)
-    // so this is a direct subtraction, no scale factor needed.
     return { x: clientX - rect.left, y: clientY - rect.top };
   }
 
@@ -262,11 +300,9 @@
     const pos = toLocalCoords(clientX, clientY);
 
     if (lastPointerPos && lastPointerTime) {
-      const dt = Math.max((now - lastPointerTime) / 1000, 1 / 240); // guard against dt=0
+      const dt = Math.max((now - lastPointerTime) / 1000, 1 / 240);
       const rawVelX = (pos.x - lastPointerPos.x) / dt;
       const rawVelY = (pos.y - lastPointerPos.y) / dt;
-
-      // EMA smoothing so raw event jitter doesn't inject noisy energy into the spring
       pointerVel.x += (rawVelX - pointerVel.x) * CONFIG.velocitySmoothing;
       pointerVel.y += (rawVelY - pointerVel.y) * CONFIG.velocitySmoothing;
     }
@@ -276,17 +312,7 @@
     lastPointerTime = now;
   }
 
-  stage.addEventListener('pointermove', (e) => {
-    handlePointerMove(e.clientX, e.clientY);
-  });
-
-  stage.addEventListener('pointerdown', () => { pointerActive = true; });
-  stage.addEventListener('pointerup', () => { pointerActive = false; });
-  stage.addEventListener('pointerleave', () => { pointerActive = false; });
-
-  // Touch: same handler, but influence only applies while a finger is
-  // actually down — there's no "hover" equivalent on touch, so we don't
-  // fake one. Idle breathing continues regardless of touch state.
+  stage.addEventListener('pointermove', (e) => handlePointerMove(e.clientX, e.clientY));
   stage.addEventListener('touchmove', (e) => {
     const t = e.touches[0];
     if (t) handlePointerMove(t.clientX, t.clientY);
@@ -294,17 +320,42 @@
 
 
   /* --------------------------------------------------------------------
-     PHYSICS STEP — this becomes physics/EquilibriumField.step().
-     Semi-implicit (symplectic) Euler integration — more stable than naive
-     Euler for spring systems, and cheap enough not to matter performance-
-     wise. Runs at a FIXED timestep (see the accumulator loop below) so
-     behavior doesn't change with display refresh rate.
+     ENERGY STATE — v0.2.0 NEW.
+     A single smoothed scalar representing "how disturbed is the system
+     right now," derived from the same offset/velocity values the physics
+     already computes. Read by the renderer to drive color; not a separate
+     simulation, just a second view of the existing state.
+     -------------------------------------------------------------------- */
+  let energySmoothed = 0;
+  const ENERGY_SMOOTHING = 0.06; // per fixed physics step — deliberately slow, avoids color flicker
+
+  function updateEnergy() {
+    let sumAbsOffset = 0;
+    let sumAbsVel = 0;
+    for (const p of points) {
+      sumAbsOffset += Math.abs(p.offset);
+      sumAbsVel += Math.abs(p.velocity);
+    }
+    const avgOffset = sumAbsOffset / points.length;
+    const avgVel = sumAbsVel / points.length;
+
+    // Normalize roughly against baseRadius (for offset) and an assumed
+    // "fast" velocity scale (for velocity) — hand-tuned starting points,
+    // adjustable live via the sensitivity slider rather than re-deriving.
+    const rawEnergy =
+      (avgOffset / CONFIG.baseRadius) * 0.6 +
+      (avgVel / 200) * 0.4;
+
+    energySmoothed += (rawEnergy - energySmoothed) * ENERGY_SMOOTHING;
+  }
+
+
+  /* --------------------------------------------------------------------
+     PHYSICS STEP
      -------------------------------------------------------------------- */
   function stepPhysics(t, dt) {
-    const cx = 170, cy = 170; // shape center, in SVG-local coordinates
+    const cx = 170, cy = 170;
 
-    // Direction + distance from shape center to current pointer position —
-    // computed once per step, reused for every point's alignment check.
     const dx = pointerPos.x - cx;
     const dy = pointerPos.y - cy;
     const distToPointer = Math.hypot(dx, dy);
@@ -312,42 +363,32 @@
     const pointerDirY = distToPointer > 0.001 ? dy / distToPointer : 0;
     const pointerSpeed = Math.hypot(pointerVel.x, pointerVel.y);
 
-    // Smooth falloff from full influence at the shape's edge to zero at
-    // influenceRadius. No hard cutoff — a soft edge reads as noticing
-    // the cursor gradually, not at an exact pixel boundary.
+    // --- v0.2.0: reshaped falloff. Was a linear ramp run through
+    // smoothstep; now an exponential ease-in curve. `proximity` is 1 at
+    // the shape's edge and 0 at the influence radius, same as before —
+    // what changed is HOW it decays across that range. Raising it to
+    // falloffExponent keeps it close to zero for most of the distance,
+    // then ramps up sharply only near actual contact.
     const edge = CONFIG.baseRadius;
     const outer = CONFIG.influenceRadius;
-    let falloff = 1 - (distToPointer - edge) / (outer - edge);
-    falloff = Math.max(0, Math.min(1, falloff));
-    falloff = falloff * falloff * (3 - 2 * falloff); // smoothstep
+    let rawT = (distToPointer - edge) / (outer - edge);
+    rawT = Math.max(0, Math.min(1, rawT));
+    const proximity = 1 - rawT;
+    const falloff = Math.pow(proximity, CONFIG.falloffExponent);
 
     for (const p of points) {
-      // --- idle target: where this point "wants" to rest, before any
-      // interaction is considered. Noise-driven, per-point phase, so the
-      // shape never settles into a perfectly still or obviously repeating
-      // pose.
       const idleTarget = reducedMotion ? 0 : idleOffset(t, p.phase) * CONFIG.noiseAmplitude;
-
-      // --- spring + damper toward idle target
       const displacement = p.offset - idleTarget;
       const springForce = -CONFIG.stiffness * displacement;
       const dampingForce = -CONFIG.damping * p.velocity;
-      let accel = springForce + dampingForce; // mass = 1
+      let accel = springForce + dampingForce;
 
-      // --- energy injection from pointer motion. Only points whose
-      // outward direction roughly faces the pointer are affected
-      // (alignment > 0) — this is what makes only the NEAR side of the
-      // shape reach toward the cursor, not the whole perimeter uniformly.
       const pointDirX = Math.cos(p.angle);
       const pointDirY = Math.sin(p.angle);
       const alignment = pointDirX * pointerDirX + pointDirY * pointerDirY;
 
       if (alignment > 0 && distToPointer < outer) {
         const impulse = pointerSpeed * alignment * falloff * CONFIG.impulseScale;
-        // Applied as a force (scaled by dt below via velocity integration),
-        // not a direct position set — this is the energy-coupling model:
-        // we're injecting momentum and letting the spring resolve it,
-        // not dictating the resulting shape directly.
         accel += impulse;
       }
 
@@ -355,19 +396,15 @@
       p.offset += p.velocity * dt;
     }
 
-    // Pointer velocity decays when no new pointer events arrive (e.g.
-    // cursor stopped moving but is still hovering) — otherwise a single
-    // fast movement would keep injecting energy forever.
     pointerVel.x *= CONFIG.velocityDecay;
     pointerVel.y *= CONFIG.velocityDecay;
+
+    updateEnergy();
   }
 
 
   /* --------------------------------------------------------------------
-     RENDERER — this becomes render/SvgRenderer.
-     Converts point state -> Cartesian coordinates -> a smooth closed path
-     via Catmull-Rom-to-Bezier conversion. This is what makes N discrete
-     points read as one continuous organic form instead of a soft polygon.
+     RENDERER — now also responsible for color-as-state.
      -------------------------------------------------------------------- */
   function catmullRomToBezierPath(pts) {
     const n = pts.length;
@@ -391,6 +428,15 @@
 
   const pathEl = document.getElementById('droplet-path');
 
+  // Baseline color defined directly in HSL so energy-driven modulation
+  // is a simple, predictable shift on two channels — no RGB<->HSL
+  // conversion needed per frame.
+  const BASE_HUE = 158;
+  const BASE_SAT = 70;
+  const BASE_LIGHT = 50;
+  const ENERGY_SAT_DELTA = 14;   // max additional saturation at full energy
+  const ENERGY_LIGHT_DELTA = 6;  // max additional lightness at full energy
+
   function render() {
     const cx = 170, cy = 170;
     const cartesian = points.map(p => {
@@ -401,25 +447,32 @@
       };
     });
     pathEl.setAttribute('d', catmullRomToBezierPath(cartesian));
+
+    // --- v0.2.0: color as state. `intensity` is the energy metric run
+    // through smoothstep and sensitivity, then used to interpolate
+    // saturation/lightness only — hue stays fixed. Small, felt-not-seen
+    // by design.
+    const normalized = Math.max(0, Math.min(1, energySmoothed * CONFIG.colorEnergySensitivity));
+    const intensity = normalized * normalized * (3 - 2 * normalized); // smoothstep
+
+    const sat = BASE_SAT + ENERGY_SAT_DELTA * intensity;
+    const light = BASE_LIGHT + ENERGY_LIGHT_DELTA * intensity;
+    pathEl.style.fill = `hsl(${BASE_HUE}, ${sat.toFixed(1)}%, ${light.toFixed(1)}%)`;
   }
 
 
   /* --------------------------------------------------------------------
-     ORCHESTRATOR — this becomes EquilibriumField (the public component).
-     Fixed-timestep accumulator loop: physics always advances in identical
-     increments regardless of actual frame rate, so the same interaction
-     feels the same on a 60Hz laptop and a 120Hz phone, and doesn't
-     destabilize on a frame hitch.
+     ORCHESTRATOR — fixed-timestep loop (unchanged from v0.1.0)
      -------------------------------------------------------------------- */
   let simTime = 0;
   let accumulator = 0;
   let lastFrameTime = performance.now();
-  const MAX_STEPS_PER_FRAME = 8; // safety cap against the "spiral of death"
+  const MAX_STEPS_PER_FRAME = 8;
 
   function loop(now) {
     let frameDelta = (now - lastFrameTime) / 1000;
     lastFrameTime = now;
-    frameDelta = Math.min(frameDelta, 0.25); // clamp huge pauses (tab switch, etc.)
+    frameDelta = Math.min(frameDelta, 0.25);
 
     accumulator += frameDelta;
     let steps = 0;
@@ -438,8 +491,7 @@
 
 
   /* --------------------------------------------------------------------
-     DEBUG PANEL WIRING — prototype-only, deleted before this becomes a
-     real component. Lets us tune by feel without touching code.
+     DEBUG PANEL WIRING — prototype-only.
      -------------------------------------------------------------------- */
   function bindSlider(id, configKey, format = (v) => v) {
     const input = document.getElementById(id);
@@ -456,9 +508,11 @@
   bindSlider('stiffness', 'stiffness');
   bindSlider('damping', 'damping');
   bindSlider('impulse', 'impulseScale');
-  bindSlider('influence', 'influenceRadius');
   bindSlider('noise', 'noiseAmplitude');
+  bindSlider('influence', 'influenceRadius');
+  bindSlider('falloff', 'falloffExponent');
+  bindSlider('colorsens', 'colorEnergySensitivity');
 </script>
 
 </body>
-</html>
+</html
