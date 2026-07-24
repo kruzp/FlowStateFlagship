@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flowstate OS — Equilibrium v0.2.0</title>
+<title>Flowstate OS — Equilibrium v0.2.2</title>
 <style>
   :root {
     --bg: #0a0a0c;
@@ -38,10 +38,10 @@
     overflow: visible;
   }
 
-  /* fill is set dynamically per-frame from render() — see color-as-state */
-  #droplet-path {
-    fill: #2ee6a6;
-  }
+  /* v0.2.2: no static fill here — the path's fill is a radialGradient
+     (see <defs> in markup) whose center/color is updated per-frame in
+     render(). A CSS fill rule on this selector would override the SVG
+     fill="url(...)" attribute, so this block is intentionally empty. */
 
   #debug-panel {
     position: fixed;
@@ -77,13 +77,13 @@
   }
 
   .control span {
-    color: #2ee6a6;
+    color: #1f8a55;
     font-variant-numeric: tabular-nums;
   }
 
   .control input[type="range"] {
     width: 100%;
-    accent-color: #2ee6a6;
+    accent-color: #1f8a55;
   }
 
   .section-divider {
@@ -116,11 +116,36 @@
 <body>
 
   <div id="hint">move your cursor near the shape</div>
-  <div id="version-tag">Equilibrium v0.2.0</div>
+  <div id="version-tag">Equilibrium v0.2.2</div>
 
   <div id="stage">
     <svg id="equilibrium-svg" viewBox="0 0 340 340">
-      <path id="droplet-path" d=""></path>
+      <defs>
+        <!--
+          v0.2.2: the cursor-as-light-source model. gradientUnits is
+          userSpaceOnUse so cx/cy live in the SAME coordinate space as
+          pointerPos and the path geometry — no unit conversion needed
+          when we update the center every frame.
+
+          Initial cx/cy/r and both stop-colors are set here to the
+          resting state, so first paint (before JS runs) already looks
+          correct rather than flashing an unstyled gradient.
+        -->
+        <!--
+          v0.2.2 (refined): three stops instead of two. A straight
+          two-color interpolation reads as a graphic effect — real
+          diffusion isn't linear, it falls off quickly near the source
+          and trails off gently further out. The mid stop lets us shape
+          that curve directly instead of implying it through easing alone.
+        -->
+        <radialGradient id="equilibrium-light" gradientUnits="userSpaceOnUse"
+                         cx="170" cy="170" r="170">
+          <stop id="light-stop-inner" offset="0%" stop-color="hsl(152, 60%, 32%)" />
+          <stop id="light-stop-mid" offset="32%" stop-color="hsl(152, 60%, 32%)" />
+          <stop id="light-stop-outer" offset="100%" stop-color="hsl(152, 60%, 32%)" />
+        </radialGradient>
+      </defs>
+      <path id="droplet-path" d="" fill="url(#equilibrium-light)"></path>
     </svg>
   </div>
 
@@ -160,9 +185,27 @@
       <input type="range" id="falloff" min="1" max="6" step="0.1">
     </div>
 
+    <hr class="section-divider">
+    <h2>Tuning — Light model (v0.2.2)</h2>
+
     <div class="control">
-      <label>Color energy sensitivity <span id="val-colorsens"></span></label>
-      <input type="range" id="colorsens" min="0.2" max="4" step="0.1">
+      <label>Light radius <span id="val-lightradius"></span></label>
+      <input type="range" id="lightradius" min="60" max="320" step="5">
+    </div>
+
+    <div class="control">
+      <label>Light follow lag <span id="val-lightlag"></span></label>
+      <input type="range" id="lightlag" min="0.03" max="0.6" step="0.01">
+    </div>
+
+    <div class="control">
+      <label>Mid-stop offset (%) <span id="val-midoffset"></span></label>
+      <input type="range" id="midoffset" min="10" max="70" step="1">
+    </div>
+
+    <div class="control">
+      <label>Mid-stop brightness factor <span id="val-midfactor"></span></label>
+      <input type="range" id="midfactor" min="0" max="1" step="0.05">
     </div>
   </div>
 
@@ -203,15 +246,157 @@
    stiffness 30, damping 12, impulseScale 3.75, influenceRadius 400,
    noiseAmplitude 10 (documented candidate for a future "Calm" preset).
 
-   OPEN QUESTIONS / IDEAS FOR NEXT ITERATION
-   - Confirm the falloff exponent default (2.4) actually solves the
-     "always slightly disturbed" issue, or whether it needs to be paired
-     with a mild radius reduction after all.
+   OPEN QUESTIONS / IDEAS FOR NEXT ITERATION (carried from v0.2.0)
    - Consider whether point count should be live-adjustable for A/B
      comparison, or stays a structural/config-time decision.
    - Color energy normalization is a hand-tuned constant right now, not
      derived — worth revisiting once the component is judged in the
      actual homepage's lighting/background context rather than isolation.
+
+
+   CHANGELOG (v0.2.0 -> v0.2.1)
+
+   1. Baseline color deepened. Was HSL(158, 70%, 50%) — a bright mint.
+      Now HSL(152, 60%, 32%). WHY: user feedback that the resting color
+      read as bright/generic rather than premium. Dropping lightness
+      from 50% to 32% is the primary change (that's what reads as
+      "deeper/richer" against a near-black background); saturation
+      pulled down slightly (70 -> 60) alongside it so the darker color
+      doesn't turn oversaturated/neon at low lightness. Hue nudged
+      152 (from 158) — marginally more forest-green, less mint.
+
+   2. Energy response range widened significantly.
+      ENERGY_SAT_DELTA: 14 -> 32. ENERGY_LIGHT_DELTA: 6 -> 26.
+      WHY: user feedback that max energy state was barely distinguishable
+      from rest. The v0.2.0 deltas were tuned against a base lightness of
+      50%, where there wasn't much headroom to brighten further without
+      blowing out. Dropping the baseline to 32% (change #1) actually
+      creates the room this needed: at full energy the shape now moves
+      from a dark resting green to a clearly brighter, more saturated
+      green — a real, visible state change — while staying inside a
+      believable range (peak ~58% lightness, ~92% saturation) rather
+      than clipping to a washed-out or neon extreme.
+
+   3. Slider/CONFIG defaults updated to match the values found by hand:
+      stiffness 30, damping 12, impulseScale 2.5 (was 3.75), noiseAmplitude
+      3 (was 10), influenceRadius 400 (unchanged), falloffExponent 3
+      (was 2.4), colorEnergySensitivity 1.7 (was 1.0). Physics/geometry
+      logic itself is untouched — only the numbers changed.
+
+   FILES MODIFIED
+   - equilibrium-v0.2.1.html (new — branched from equilibrium-v0.2.0.html,
+     which is left intact/unmodified per "keep v0.2 progress intact")
+
+   OPEN FOR NEXT ITERATION (carried from v0.2.1)
+   - Impulse strength dropped from 3.75 to 2.5 and noise amplitude from
+     10 to 3 in the v0.2.1 tuning session — worth a note that this is
+     a notably calmer, lower-noise baseline than the v0.1.0 session
+     preferred. Not a problem, just flagging the drift so it's a
+     conscious choice, not something that slips by unnoticed.
+
+
+   CHANGELOG (v0.2.1 -> v0.2.2) — CONCEPTUAL CHANGE, not a value tune
+
+   Replaced "color-as-state" (whole shape tinted by a single system-wide
+   energy scalar) with a cursor-as-light-source model. WHY: the previous
+   approach had no spatial dimension — one number drove one flat fill
+   across the entire path, so it could never produce a moving hotspot,
+   regardless of tuning. The brief called for the cursor to act like a
+   light source on a surface, which requires an actual position on that
+   surface, not a global average.
+
+   Implementation:
+   1. The path's fill is now an SVG radialGradient (see <defs> in markup)
+      instead of a flat color. A gradient's cx/cy can be moved every
+      frame — this alone gives "brightest point follows the cursor"
+      across the WHOLE continuous surface, without any per-point color
+      logic and without touching geometry.
+   2. Light intensity is driven by the exact same `falloff` value the
+      physics step already computes for impulse strength (proximity to
+      cursor, shaped by the existing falloffExponent curve) — reused,
+      not duplicated. Smoothed via its own EMA (LIGHT_INTENSITY_SMOOTHING)
+      so it eases in/out rather than snapping.
+   3. Added an explicit pointerInside flag (pointerenter/leave, touch-
+     start/end). Without it, the light would "stick" at the last known
+      cursor position when the mouse leaves the browser window entirely,
+      since pointermove simply stops firing — the flag forces intensity
+      toward zero in that case so it reliably fades back to resting green.
+   4. The gradient center itself is also smoothed (lightPositionSmoothing)
+      toward the raw pointer position rather than snapping to it — a
+      small, deliberate lag that reads as "light catching up," not input
+      delay.
+   5. Outer gradient stop is fixed at the resting deep green always — the
+      instruction that "areas farther from the cursor remain darker" is
+      structurally guaranteed by this, not something we have to tune.
+
+   Preserved unchanged: physics integration, spring/damping model,
+   geometry generation, falloff calculation itself (only reused, not
+   modified), project/file structure, idle noise system.
+
+   The old energy calculation (updateEnergy/energySmoothed) is left in
+   place but no longer drives anything visible — it's cheap to compute
+   and is a reasonable seed for future ripple/wave-energy work, since it
+   already represents "how disturbed is the system as a whole." Flagging
+   it as currently-unused rather than deleting it, per the instruction to
+   leave room for that future development.
+
+   REFINEMENT WITHIN v0.2.2 (same version, not a bump — this sharpens the
+   lighting model above, it doesn't change what it's built on)
+
+   Two changes, both purely in the rendering layer, prompted by the
+   feedback that the first pass still read as "a light shining on the
+   object" rather than "the object's own luminosity responding":
+
+   1. Gradient stops: 2 -> 3. A straight two-color interpolation is
+      inherently linear, which reads as a graphic effect — real
+      diffusion falls off quickly near the source and trails gently
+      further out. The new mid stop (32% offset, carrying only
+      MID_STOP_BRIGHTNESS_FACTOR = 0.3 of the full brightness delta)
+      shapes that curve directly.
+
+   2. Intensity easing: one constant -> asymmetric attack/release.
+      Light gathering beneath the cursor now eases in quickly
+      (LIGHT_ATTACK_SMOOTHING = 0.16); dissipating after the cursor
+      leaves is much slower (LIGHT_RELEASE_SMOOTHING = 0.035). A
+      symmetric fade reads as mechanical; real dissipation lingers.
+
+   ARCHITECTURAL NOTE — deferred, not decided against:
+   We explicitly discussed whether luminosity should become a true
+   per-point field (each point holding its own brightness, with
+   injection + neighbor diffusion + decay — the same mathematical
+   vocabulary a future ripple system would use) rather than a value
+   derived straight from cursor distance. Conclusion: the field is
+   probably the right long-term answer, but building it now, before
+   anything (like ripples) actually needs to consume it, means tuning
+   diffusion math against a hypothetical rather than a real second use
+   case. This rendering-only refinement is the cheaper experiment first:
+   if it turns out shaping the gradient curve and easing asymmetry is
+   NOT enough to feel organic/alive, that's the concrete evidence that
+   justifies building the field in v0.3, rather than a hunch.
+
+   Preserved unchanged (same as the v0.2.2 entry above): physics
+   integration, spring/damping model, geometry generation, falloff
+   calculation, project/file structure, idle noise system, energy
+   tracking (still computed, still disconnected from rendering).
+
+   FILES MODIFIED
+   - equilibrium-v0.2.2.html (branched from equilibrium-v0.2.1.html,
+     which is left untouched; this refinement was applied in place to
+     the same v0.2.2 file, not a new version)
+
+   OPEN FOR NEXT ITERATION
+   - Light intensity is currently driven by distance from the shape's
+     CENTER (reusing the existing falloff), which is a reasonable
+     approximation while the shape stays roughly circular, but isn't
+     literally "distance from nearest surface point." Worth revisiting
+     if the shape ever deforms enough for that gap to be visible.
+   - The field-based luminosity architecture (injection + diffusion +
+     decay per point) remains the leading candidate for v0.3, to be
+     built alongside/ahead of ripple propagation rather than in
+     isolation — see the architectural note above.
+   - MID_STOP_BRIGHTNESS_FACTOR (0.3) and the mid stop's 32% offset are
+     hand-picked starting points for the curve shape, not derived —
+     good candidates for sliders if they need further tuning by feel.
    ============================================================================ */
 
 
@@ -221,16 +406,19 @@
   const CONFIG = {
     pointCount: 14,          // v0.2.0: raised from 10 for curve fidelity under strong deformation
     baseRadius: 80,
-    stiffness: 30,            // tuned baseline from v0.1.0 session
-    damping: 12,               // tuned baseline — lands near critical damping (ζ ≈ 1.1) at this stiffness
-    impulseScale: 3.75,
-    influenceRadius: 400,
-    falloffExponent: 2.4,     // v0.2.0: NEW — shapes the falloff curve, see stepPhysics()
-    noiseAmplitude: 10,
+    stiffness: 30,             // unchanged
+    damping: 12,               // unchanged — lands near critical damping (ζ ≈ 1.1) at this stiffness
+    impulseScale: 2.5,        // v0.2.1: down from 3.75, per manual tuning session
+    influenceRadius: 400,      // unchanged
+    falloffExponent: 3,       // v0.2.1: up from 2.4, per manual tuning session
+    noiseAmplitude: 3,        // v0.2.1: down from 10, per manual tuning session
     velocitySmoothing: 0.25,
     velocityDecay: 0.90,
     fixedTimestep: 1 / 120,
-    colorEnergySensitivity: 1.0 // v0.2.0: NEW — see energy/color section
+    lightRadius: 170,           // v0.2.2: NEW — spread of the cursor-light gradient, in SVG units
+    lightPositionSmoothing: 0.18, // v0.2.2: NEW — EMA lag on the gradient center tracking the cursor
+    midStopOffset: 32,          // refinement: gradient mid-stop position, in percent
+    midStopBrightnessFactor: 0.3 // refinement: fraction of full brightness delta carried at the mid stop
   };
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -318,16 +506,50 @@
     if (t) handlePointerMove(t.clientX, t.clientY);
   }, { passive: true });
 
+  // v0.2.2: explicit "is there actually a live cursor/touch right now"
+  // flag. Needed because pointerPos simply holds its LAST value once
+  // events stop — without this flag, if the mouse leaves the browser
+  // window entirely, the light would stick at the last position instead
+  // of fading back to resting green as the spec requires.
+  let pointerInside = false;
+  stage.addEventListener('pointerenter', () => { pointerInside = true; });
+  stage.addEventListener('pointerleave', () => { pointerInside = false; });
+  stage.addEventListener('touchstart', () => { pointerInside = true; }, { passive: true });
+  stage.addEventListener('touchend', () => { pointerInside = false; });
+  stage.addEventListener('touchcancel', () => { pointerInside = false; });
+
 
   /* --------------------------------------------------------------------
-     ENERGY STATE — v0.2.0 NEW.
+     ENERGY STATE — v0.2.0 NEW. As of v0.2.2: NO LONGER DRIVES RENDERING.
      A single smoothed scalar representing "how disturbed is the system
      right now," derived from the same offset/velocity values the physics
-     already computes. Read by the renderer to drive color; not a separate
-     simulation, just a second view of the existing state.
+     already computes. It drove color in v0.2.0/v0.2.1; the lighting
+     model now uses cursor-proximity `falloff` instead (see PHYSICS STEP
+     below). Left in place, still computed each step, because it's cheap
+     and is a reasonable candidate input for future ripple/wave-energy
+     work — a global "how alive is the system right now" signal is
+     useful for exactly that.
      -------------------------------------------------------------------- */
   let energySmoothed = 0;
-  const ENERGY_SMOOTHING = 0.06; // per fixed physics step — deliberately slow, avoids color flicker
+  const ENERGY_SMOOTHING = 0.06; // per fixed physics step — deliberately slow, avoids flicker
+
+  /* --------------------------------------------------------------------
+     LIGHT STATE — v0.2.2 NEW.
+     lightIntensitySmoothed: eased 0-1 value driving how bright the
+     hotspot currently is. lightCenterX/Y: the gradient's current center,
+     lagged toward the raw pointer position for a "light catching up"
+     feel rather than snapping instantly.
+     -------------------------------------------------------------------- */
+  let lightIntensitySmoothed = 0;
+  // Refined: asymmetric easing instead of one constant. Light gathering
+  // beneath the cursor should feel prompt; it dissipating afterward
+  // should feel gradual and organic, not a mirror-image fade. Same
+  // underlying mechanism (EMA toward a target), just two different rates
+  // depending on whether intensity is rising or falling.
+  const LIGHT_ATTACK_SMOOTHING = 0.16;   // rising toward the cursor — quick to gather
+  const LIGHT_RELEASE_SMOOTHING = 0.035; // falling after the cursor leaves — slow to dissipate
+  let lightCenterX = 170;
+  let lightCenterY = 170;
 
   function updateEnergy() {
     let sumAbsOffset = 0;
@@ -375,6 +597,21 @@
     rawT = Math.max(0, Math.min(1, rawT));
     const proximity = 1 - rawT;
     const falloff = Math.pow(proximity, CONFIG.falloffExponent);
+
+    // --- v0.2.2: cursor-as-light-source. Reuses `falloff` directly —
+    // the same proximity signal already driving physical impulse now
+    // also drives how bright the hotspot is. `pointerInside` forces the
+    // target to zero when there's no live cursor/touch, so the light
+    // reliably fades out rather than sticking at a stale position.
+    const targetLightIntensity = pointerInside ? falloff : 0;
+    const risingTowardTarget = targetLightIntensity > lightIntensitySmoothed;
+    const lightRate = risingTowardTarget ? LIGHT_ATTACK_SMOOTHING : LIGHT_RELEASE_SMOOTHING;
+    lightIntensitySmoothed += (targetLightIntensity - lightIntensitySmoothed) * lightRate;
+
+    // Gradient center eases toward the raw pointer position — a small
+    // lag that reads as the light physically catching up, not latency.
+    lightCenterX += (pointerPos.x - lightCenterX) * CONFIG.lightPositionSmoothing;
+    lightCenterY += (pointerPos.y - lightCenterY) * CONFIG.lightPositionSmoothing;
 
     for (const p of points) {
       const idleTarget = reducedMotion ? 0 : idleOffset(t, p.phase) * CONFIG.noiseAmplitude;
@@ -427,15 +664,33 @@
   }
 
   const pathEl = document.getElementById('droplet-path');
+  const lightGradient = document.getElementById('equilibrium-light');
+  const lightStopInner = document.getElementById('light-stop-inner');
+  const lightStopMid = document.getElementById('light-stop-mid');
 
-  // Baseline color defined directly in HSL so energy-driven modulation
-  // is a simple, predictable shift on two channels — no RGB<->HSL
-  // conversion needed per frame.
-  const BASE_HUE = 158;
-  const BASE_SAT = 70;
-  const BASE_LIGHT = 50;
-  const ENERGY_SAT_DELTA = 14;   // max additional saturation at full energy
-  const ENERGY_LIGHT_DELTA = 6;  // max additional lightness at full energy
+  // Resting color, defined directly in HSL. Unchanged from v0.2.1 — this
+  // is now BOTH the gradient's outer stop (always) and the inner stop's
+  // base before any light is added.
+  const BASE_HUE = 152;
+  const BASE_SAT = 60;
+  const BASE_LIGHT = 32;
+
+  // Same magnitude as v0.2.1's energy deltas, repurposed — describing
+  // how much brighter the hotspot's CENTER gets at full intensity.
+  const LIGHT_SAT_DELTA = 32;
+  const LIGHT_LIGHT_DELTA = 26;
+
+  // Refined: the mid stop carries only a fraction of the full brightness
+  // boost — this is what makes the curve fall off quickly near the
+  // center and trail gently toward the edge, instead of a straight
+  // linear blend between bright and dark. Both values now live in
+  // CONFIG (midStopBrightnessFactor / midStopOffset) so they're
+  // tunable via the debug panel rather than fixed constants.
+
+  function smoothstep(x) {
+    x = Math.max(0, Math.min(1, x));
+    return x * x * (3 - 2 * x);
+  }
 
   function render() {
     const cx = 170, cy = 170;
@@ -448,16 +703,24 @@
     });
     pathEl.setAttribute('d', catmullRomToBezierPath(cartesian));
 
-    // --- v0.2.0: color as state. `intensity` is the energy metric run
-    // through smoothstep and sensitivity, then used to interpolate
-    // saturation/lightness only — hue stays fixed. Small, felt-not-seen
-    // by design.
-    const normalized = Math.max(0, Math.min(1, energySmoothed * CONFIG.colorEnergySensitivity));
-    const intensity = normalized * normalized * (3 - 2 * normalized); // smoothstep
+    // --- v0.2.2: cursor-as-light-source. The gradient's center follows
+    // the (lagged) cursor position — this is what makes the brightest
+    // point track the cursor across the WHOLE surface continuously,
+    // rather than being quantized to discrete points. The outer stop is
+    // never touched here, so "areas farther from the cursor stay dark"
+    // is guaranteed by construction, not tuned.
+    const intensity = smoothstep(lightIntensitySmoothed);
+    const innerSat = BASE_SAT + LIGHT_SAT_DELTA * intensity;
+    const innerLight = BASE_LIGHT + LIGHT_LIGHT_DELTA * intensity;
+    const midSat = BASE_SAT + LIGHT_SAT_DELTA * intensity * CONFIG.midStopBrightnessFactor;
+    const midLight = BASE_LIGHT + LIGHT_LIGHT_DELTA * intensity * CONFIG.midStopBrightnessFactor;
 
-    const sat = BASE_SAT + ENERGY_SAT_DELTA * intensity;
-    const light = BASE_LIGHT + ENERGY_LIGHT_DELTA * intensity;
-    pathEl.style.fill = `hsl(${BASE_HUE}, ${sat.toFixed(1)}%, ${light.toFixed(1)}%)`;
+    lightStopInner.setAttribute('stop-color', `hsl(${BASE_HUE}, ${innerSat.toFixed(1)}%, ${innerLight.toFixed(1)}%)`);
+    lightStopMid.setAttribute('offset', `${CONFIG.midStopOffset}%`);
+    lightStopMid.setAttribute('stop-color', `hsl(${BASE_HUE}, ${midSat.toFixed(1)}%, ${midLight.toFixed(1)}%)`);
+    lightGradient.setAttribute('cx', lightCenterX.toFixed(2));
+    lightGradient.setAttribute('cy', lightCenterY.toFixed(2));
+    lightGradient.setAttribute('r', CONFIG.lightRadius);
   }
 
 
@@ -511,7 +774,10 @@
   bindSlider('noise', 'noiseAmplitude');
   bindSlider('influence', 'influenceRadius');
   bindSlider('falloff', 'falloffExponent');
-  bindSlider('colorsens', 'colorEnergySensitivity');
+  bindSlider('lightradius', 'lightRadius');
+  bindSlider('lightlag', 'lightPositionSmoothing', (v) => v.toFixed(2));
+  bindSlider('midoffset', 'midStopOffset');
+  bindSlider('midfactor', 'midStopBrightnessFactor', (v) => v.toFixed(2));
 </script>
 
 </body>
