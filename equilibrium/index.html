@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flowstate OS — Equilibrium v0.4.0</title>
+<title>Flowstate OS — Heart Material Engine v1 (Equilibrium v0.4.1)</title>
 <style>
   :root {
     --bg: #0a0a0c;
@@ -52,7 +52,7 @@
 <body>
 
   <div id="hint">move your cursor near the shape — press "h" to hide panel</div>
-  <div id="version-tag">Equilibrium v0.4.0</div>
+  <div id="version-tag">Heart Material Engine v1 · Equilibrium v0.4.1</div>
 
   <div id="stage">
     <svg id="equilibrium-svg" viewBox="0 0 340 340">
@@ -136,6 +136,12 @@
    rendering, idle noise, input adapter, falloff/alignment calculation.
    NOT ADDED: bloom, rim lighting, edge highlights, or any decorative
    effect — same glow-blob + clip + screen-blend rendering as v0.3.0.
+   CHANGELOG (v0.4.0 -> v0.4.1)
+   No functional change. This version tag formally marks "Heart Material
+   Engine v1" as complete: cursor-following rendering is fully removed,
+   MaterialField (inject/step/get/average) is the sole source of truth
+   the renderer reads, and diffusion is already wired for v0.3's wave
+   propagation to build on directly.
    ============================================================================ */
 
 
