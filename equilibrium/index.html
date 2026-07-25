@@ -3,128 +3,61 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flowstate OS — Equilibrium v0.3.0</title>
+<title>Flowstate OS — Equilibrium v0.4.0</title>
 <style>
   :root {
     --bg: #0a0a0c;
     --ink-secondary: #6b6f76;
     --ink-tertiary: #3a3d42;
   }
-
   * { box-sizing: border-box; }
-
   html, body {
-    margin: 0;
-    height: 100%;
-    background: var(--bg);
-    overflow: hidden;
+    margin: 0; height: 100%; background: var(--bg); overflow: hidden;
     font-family: -apple-system, "Manrope", system-ui, sans-serif;
   }
-
   #stage {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: relative; width: 100vw; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
     touch-action: none;
   }
-
-  #equilibrium-svg {
-    width: 340px;
-    height: 340px;
-    display: block;
-    overflow: visible;
-  }
-
-  #glow-layer {
-    mix-blend-mode: screen;
-  }
-
+  #equilibrium-svg { width: 340px; height: 340px; display: block; overflow: visible; }
+  #glow-layer { mix-blend-mode: screen; }
   #debug-panel {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 10px;
-    padding: 16px 18px;
-    font-size: 12px;
-    color: var(--ink-secondary);
-    width: 260px;
-    backdrop-filter: blur(6px);
-    max-height: 80vh;
-    overflow-y: auto;
+    position: fixed; bottom: 20px; left: 20px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px; padding: 16px 18px; font-size: 12px;
+    color: var(--ink-secondary); width: 260px; backdrop-filter: blur(6px);
+    max-height: 80vh; overflow-y: auto;
   }
-
   #debug-panel.hidden { display: none; }
-
   #debug-panel h2 {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #fff;
-    margin: 0 0 12px 0;
-    font-weight: 600;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: #fff; margin: 0 0 12px 0; font-weight: 600;
   }
-
   .control { margin-bottom: 12px; }
-
-  .control label {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 4px;
-  }
-
-  .control span {
-    color: #1f8a55;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .control input[type="range"] {
-    width: 100%;
-    accent-color: #1f8a55;
-  }
-
-  .section-divider {
-    border: none;
-    border-top: 1px solid rgba(255,255,255,0.08);
-    margin: 14px 0;
-  }
-
+  .control label { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .control span { color: #1f8a55; font-variant-numeric: tabular-nums; }
+  .control input[type="range"] { width: 100%; accent-color: #1f8a55; }
+  .section-divider { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 14px 0; }
   #hint {
-    position: fixed;
-    top: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: var(--ink-tertiary);
-    font-size: 13px;
-    letter-spacing: 0.02em;
+    position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
+    color: var(--ink-tertiary); font-size: 13px; letter-spacing: 0.02em;
   }
-
   #version-tag {
-    position: fixed;
-    top: 20px;
-    right: 24px;
-    color: var(--ink-tertiary);
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    font-variant-numeric: tabular-nums;
+    position: fixed; top: 20px; right: 24px; color: var(--ink-tertiary);
+    font-size: 11px; letter-spacing: 0.04em; font-variant-numeric: tabular-nums;
   }
 </style>
 </head>
 <body>
 
   <div id="hint">move your cursor near the shape — press "h" to hide panel</div>
-  <div id="version-tag">Equilibrium v0.3.0</div>
+  <div id="version-tag">Equilibrium v0.4.0</div>
 
   <div id="stage">
     <svg id="equilibrium-svg" viewBox="0 0 340 340">
       <defs>
-        <clipPath id="droplet-clip">
-          <path id="droplet-clip-path" d=""></path>
-        </clipPath>
+        <clipPath id="droplet-clip"><path id="droplet-clip-path" d=""></path></clipPath>
         <radialGradient id="glow-blob">
           <stop offset="0%" stop-color="#e8fff2" stop-opacity="1" />
           <stop offset="100%" stop-color="#e8fff2" stop-opacity="0" />
@@ -136,112 +69,125 @@
   </div>
 
   <div id="debug-panel">
-    <h2>Tuning — Physics (unchanged since v0.1.0)</h2>
-
-    <div class="control">
-      <label>Stiffness (k) <span id="val-stiffness"></span></label>
-      <input type="range" id="stiffness" min="10" max="400" step="1">
-    </div>
-
-    <div class="control">
-      <label>Damping (c) <span id="val-damping"></span></label>
-      <input type="range" id="damping" min="1" max="60" step="0.5">
-    </div>
-
-    <div class="control">
-      <label>Impulse strength <span id="val-impulse"></span></label>
-      <input type="range" id="impulse" min="0" max="6" step="0.05">
-    </div>
-
-    <div class="control">
-      <label>Idle noise amplitude <span id="val-noise"></span></label>
-      <input type="range" id="noise" min="0" max="20" step="0.5">
-    </div>
-
-    <div class="control">
-      <label>Influence radius <span id="val-influence"></span></label>
-      <input type="range" id="influence" min="60" max="500" step="5">
-    </div>
-
-    <div class="control">
-      <label>Falloff exponent <span id="val-falloff"></span></label>
-      <input type="range" id="falloff" min="1" max="6" step="0.1">
-    </div>
+    <h2>Tuning — Physics (unchanged)</h2>
+    <div class="control"><label>Stiffness (k) <span id="val-stiffness"></span></label>
+      <input type="range" id="stiffness" min="10" max="400" step="1"></div>
+    <div class="control"><label>Damping (c) <span id="val-damping"></span></label>
+      <input type="range" id="damping" min="1" max="60" step="0.5"></div>
+    <div class="control"><label>Impulse strength <span id="val-impulse"></span></label>
+      <input type="range" id="impulse" min="0" max="6" step="0.05"></div>
+    <div class="control"><label>Idle noise amplitude <span id="val-noise"></span></label>
+      <input type="range" id="noise" min="0" max="20" step="0.5"></div>
+    <div class="control"><label>Influence radius <span id="val-influence"></span></label>
+      <input type="range" id="influence" min="60" max="500" step="5"></div>
+    <div class="control"><label>Falloff exponent <span id="val-falloff"></span></label>
+      <input type="range" id="falloff" min="1" max="6" step="0.1"></div>
 
     <hr class="section-divider">
-    <h2>Tuning — Luminosity field (v0.3.0)</h2>
-
-    <div class="control">
-      <label>Attack rate <span id="val-lumattack"></span></label>
-      <input type="range" id="lumattack" min="0.02" max="0.5" step="0.01">
-    </div>
-
-    <div class="control">
-      <label>Release rate <span id="val-lumrelease"></span></label>
-      <input type="range" id="lumrelease" min="0.005" max="0.2" step="0.005">
-    </div>
-
-    <div class="control">
-      <label>Diffusion rate <span id="val-lumdiffusion"></span></label>
-      <input type="range" id="lumdiffusion" min="0" max="0.4" step="0.01">
-    </div>
-
-    <div class="control">
-      <label>Glow radius <span id="val-glowradius"></span></label>
-      <input type="range" id="glowradius" min="15" max="120" step="1">
-    </div>
-
-    <div class="control">
-      <label>Ambient radius <span id="val-ambientradius"></span></label>
-      <input type="range" id="ambientradius" min="60" max="220" step="5">
-    </div>
+    <h2>Tuning — Material Engine (v0.4.0)</h2>
+    <div class="control"><label>Attack rate <span id="val-lumattack"></span></label>
+      <input type="range" id="lumattack" min="0.02" max="0.5" step="0.01"></div>
+    <div class="control"><label>Release rate <span id="val-lumrelease"></span></label>
+      <input type="range" id="lumrelease" min="0.005" max="0.2" step="0.005"></div>
+    <div class="control"><label>Diffusion rate <span id="val-lumdiffusion"></span></label>
+      <input type="range" id="lumdiffusion" min="0" max="0.4" step="0.01"></div>
+    <div class="control"><label>Glow radius <span id="val-glowradius"></span></label>
+      <input type="range" id="glowradius" min="15" max="120" step="1"></div>
+    <div class="control"><label>Ambient radius <span id="val-ambientradius"></span></label>
+      <input type="range" id="ambientradius" min="60" max="220" step="5"></div>
   </div>
 
 <script>
 /* ============================================================================
-   FLOWSTATE OS — EQUILIBRIUM PRIMITIVE
-   v0.3.0
+   FLOWSTATE OS — EQUILIBRIUM
+   v0.4.0 — MATERIAL ENGINE
    ----------------------------------------------------------------------------
-   CHANGELOG (v0.2.2 -> v0.3.0) — ARCHITECTURAL REPLACEMENT of the lighting
-   system. Physics, geometry, and input layers are untouched below.
+   CHANGELOG (v0.3.0 -> v0.4.0) — architectural, not visual.
 
-   REMOVED ENTIRELY: the cursor-following radialGradient (a single gradient
-   whose cx/cy tracked pointer position, with a shaped 3-stop falloff and
-   attack/release smoothing on one global intensity scalar). That model's
-   light origin was, by construction, an external point locked to the
-   cursor — no amount of curve-shaping could make it read as anything but
-   a flashlight, because the material itself never held any state.
+   v0.3.0 already had a per-point luminosity field, but the field logic
+   was inlined directly inside stepPhysics(), reading pointerPos/falloff
+   itself. That's fine for one droplet, but it isn't a foundation anything
+   else (waves, veins, ink, fabric, particles) could reuse — the "engine"
+   and "this one component's use of it" were the same code.
 
-   REPLACED WITH: a per-point luminosity field. Each of the existing
-   control points now carries its own energy value in addition to its
-   existing radial offset. Three operators drive it every physics step,
-   reusing the geometry and proximity math that already exists:
-     - INJECT: cursor proximity/alignment (the same falloff + alignment
-       values already computed for mechanical impulse) pushes a point's
-       target luminosity up.
-     - DIFFUSE: each point blends slightly toward its two neighbors'
-       luminosity, so energy visibly spreads across the surface rather
-       than sitting fixed under the cursor. This is the same operator a
-       future ripple/wave system would use — built once, reused later.
-     - DECAY: asymmetric attack/release, now per-point instead of global,
-       so brightness gathers quickly and lingers before fading.
+   v0.4.0 extracts MaterialField as a standalone, geometry-agnostic,
+   input-agnostic class:
+     - inject(index, amount) — something ADDS energy at a location.
+       MaterialField doesn't know or care what that something is (a
+       cursor, a collision, another material, a scripted event).
+     - step() — advances attack/release + neighbor diffusion by one
+       fixed tick. No knowledge of physics, geometry, or rendering.
+     - get(index) / average() — the ONLY way anything reads state out.
 
-   RENDERING: the base path is now a flat, static resting color — the
-   material is calm until disturbed, exactly as intended. A clipped
-   overlay group draws one soft glow blob per point (position + opacity
-   driven by that point's luminosity) plus one larger, dimmer ambient
-   wash at the shape's center (driven by the field's average) to suggest
-   a connected internal volume rather than isolated highlights. The clip
-   path keeps every glow strictly confined inside the droplet's silhouette
-   — light that cannot escape the material's boundary reads as internal,
-   which a boundless gradient never could. Blend mode is `screen`, a pure
-   compositing operation (no filter/blur cost) so multiple overlapping
-   glows brighten additively without any GPU-expensive effects.
+   Enforced separation, not just organizational: stepPhysics() computes
+   WHERE and HOW MUCH to inject (still using the existing cursor/
+   alignment/falloff math — unchanged), then calls field.inject(). It
+   never touches field.state directly. render() calls field.get()/
+   average() only — it has no reference to pointerPos, pointerVel, or
+   distToPointer at all. The renderer cannot ask "where is the cursor,"
+   structurally, because it has no path to that information anymore.
 
-   PRESERVED UNCHANGED: spring/damping physics, semi-implicit Euler
-   integration, fixed-timestep accumulator, Catmull-Rom geometry, idle
-   noise, falloff/alignment calculation, input adapter, project structure.
+   This is the reusable unit: a future "ink" material would instantiate
+   its own MaterialField and inject from a different source (e.g. drag
+   velocity); a "fabric" material could run several fields (stretch,
+   wear) over the same point set. The engine itself doesn't change.
+
+   PRESERVED UNCHANGED: spring/damping physics, geometry, Catmull-Rom
+   rendering, idle noise, input adapter, falloff/alignment calculation.
+   NOT ADDED: bloom, rim lighting, edge highlights, or any decorative
+   effect — same glow-blob + clip + screen-blend rendering as v0.3.0.
    ============================================================================ */
+
+
+  /* --------------------------------------------------------------------
+     MATERIAL ENGINE — reusable, geometry- and input-agnostic.
+     -------------------------------------------------------------------- */
+  class MaterialField {
+    constructor(size, { attack, release, diffusion }) {
+      this.size = size;
+      this.attack = attack;
+      this.release = release;
+      this.diffusion = diffusion;
+      this.state = new Float32Array(size);
+      this._next = new Float32Array(size);
+      this._targets = new Float32Array(size);
+    }
+
+    // Something injects energy at an index. Multiple injections in the
+    // same tick take the strongest, not the sum — prevents a future
+    // multi-source material (e.g. two touches) from blowing past 1.0.
+    inject(index, amount) {
+      if (amount > this._targets[index]) this._targets[index] = amount;
+    }
+
+    step() {
+      const n = this.size;
+      for (let i = 0; i < n; i++) {
+        const target = this._targets[i];
+        const current = this.state[i];
+        const rate = target > current ? this.attack : this.release;
+        const eased = current + (target - current) * rate;
+
+        const left = this.state[(i - 1 + n) % n];
+        const right = this.state[(i + 1) % n];
+        const neighborAvg = (left + right) * 0.5;
+
+        this._next[i] = eased + (neighborAvg - eased) * this.diffusion;
+      }
+      const tmp = this.state;
+      this.state = this._next;
+      this._next = tmp;
+      this._targets.fill(0); // injections are per-tick; caller re-injects every step
+    }
+
+    get(index) { return this.state[index]; }
+
+    average() {
+      let sum = 0;
+      for (let i = 0; i < this.size; i++) sum += this.state[i];
+      return sum / this.size;
+    }
+  }
 
 
   /* --------------------------------------------------------------------
@@ -259,11 +205,11 @@
     velocitySmoothing: 0.25,
     velocityDecay: 0.90,
     fixedTimestep: 1 / 120,
-    lumAttack: 0.14,        // v0.3.0: per-point luminosity rise rate
-    lumRelease: 0.03,       // v0.3.0: per-point luminosity decay rate
-    lumDiffusion: 0.12,     // v0.3.0: neighbor-blending rate (spreads energy along the surface)
-    glowRadius: 55,         // v0.3.0: visual radius of each point's glow blob, in SVG units
-    ambientRadius: 130      // v0.3.0: radius of the soft central wash driven by average luminosity
+    lumAttack: 0.14,
+    lumRelease: 0.03,
+    lumDiffusion: 0.12,
+    glowRadius: 55,
+    ambientRadius: 130
   };
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -271,6 +217,12 @@
     CONFIG.noiseAmplitude = 0;
     CONFIG.impulseScale *= 0.4;
   }
+
+  const material = new MaterialField(CONFIG.pointCount, {
+    attack: CONFIG.lumAttack,
+    release: CONFIG.lumRelease,
+    diffusion: CONFIG.lumDiffusion
+  });
 
 
   /* --------------------------------------------------------------------
@@ -280,7 +232,6 @@
     const x = Math.sin(n * 12.9898) * 43758.5453;
     return x - Math.floor(x);
   }
-
   function valueNoise1D(x) {
     const i = Math.floor(x);
     const f = x - i;
@@ -289,7 +240,6 @@
     const u = f * f * (3 - 2 * f);
     return a + (b - a) * u;
   }
-
   function idleOffset(t, phase) {
     const n1 = valueNoise1D(t * 0.021 + phase) * 2 - 1;
     const n2 = valueNoise1D(t * 0.057 + phase * 1.7) * 2 - 1;
@@ -299,14 +249,9 @@
 
 
   /* --------------------------------------------------------------------
-     POINT STATE — added `lum` / `lumNext` (v0.3.0). Ping-ponged each
-     step so diffusion reads neighbors' PREVIOUS values, not values
-     already updated earlier in the same pass.
+     POINT STATE (geometry unchanged — no luminosity fields here anymore)
      -------------------------------------------------------------------- */
   const points = [];
-  let luminosity = new Array(CONFIG.pointCount).fill(0);
-  let luminosityNext = new Array(CONFIG.pointCount).fill(0);
-
   for (let i = 0; i < CONFIG.pointCount; i++) {
     points.push({
       angle: (i / CONFIG.pointCount) * Math.PI * 2,
@@ -322,7 +267,6 @@
      -------------------------------------------------------------------- */
   const svg = document.getElementById('equilibrium-svg');
   const stage = document.getElementById('stage');
-
   let pointerPos = { x: 170, y: 170 };
   let pointerVel = { x: 0, y: 0 };
   let lastPointerPos = null;
@@ -336,7 +280,6 @@
   function handlePointerMove(clientX, clientY) {
     const now = performance.now();
     const pos = toLocalCoords(clientX, clientY);
-
     if (lastPointerPos && lastPointerTime) {
       const dt = Math.max((now - lastPointerTime) / 1000, 1 / 240);
       const rawVelX = (pos.x - lastPointerPos.x) / dt;
@@ -344,7 +287,6 @@
       pointerVel.x += (rawVelX - pointerVel.x) * CONFIG.velocitySmoothing;
       pointerVel.y += (rawVelY - pointerVel.y) * CONFIG.velocitySmoothing;
     }
-
     pointerPos = pos;
     lastPointerPos = pos;
     lastPointerTime = now;
@@ -365,21 +307,12 @@
 
 
   /* --------------------------------------------------------------------
-     ENERGY STATE — mechanical energy, still computed, still not used by
-     rendering. Retained as a candidate input for future ripple work.
-     -------------------------------------------------------------------- */
-  let energySmoothed = 0;
-  const ENERGY_SMOOTHING = 0.06;
-
-
-  /* --------------------------------------------------------------------
-     PHYSICS STEP — deformation logic unchanged from v0.2.x. The
-     luminosity field update is new (v0.3.0) but reuses the exact
-     alignment/falloff values already computed here for impulse.
+     PHYSICS STEP — deformation unchanged. The only material-related
+     call here is field.inject(); everything downstream of that call
+     (attack/release/diffusion) lives inside MaterialField, not here.
      -------------------------------------------------------------------- */
   function stepPhysics(t, dt) {
     const cx = 170, cy = 170;
-
     const dx = pointerPos.x - cx;
     const dy = pointerPos.y - cy;
     const distToPointer = Math.hypot(dx, dy);
@@ -394,12 +327,9 @@
     const proximity = 1 - rawT;
     const falloff = Math.pow(proximity, CONFIG.falloffExponent);
 
-    const n = points.length;
-
-    for (let i = 0; i < n; i++) {
+    for (let i = 0; i < points.length; i++) {
       const p = points[i];
 
-      // --- deformation (unchanged) ---
       const idleTarget = reducedMotion ? 0 : idleOffset(t, p.phase) * CONFIG.noiseAmplitude;
       const displacement = p.offset - idleTarget;
       const springForce = -CONFIG.stiffness * displacement;
@@ -409,7 +339,6 @@
       const pointDirX = Math.cos(p.angle);
       const pointDirY = Math.sin(p.angle);
       const alignment = pointDirX * pointerDirX + pointDirY * pointerDirY;
-
       const inInfluence = alignment > 0 && distToPointer < outer && pointerInside;
 
       if (inInfluence) {
@@ -419,60 +348,35 @@
       p.velocity += accel * dt;
       p.offset += p.velocity * dt;
 
-      // --- luminosity field (v0.3.0) ---
-      // INJECT: same proximity/alignment signal driving mechanical impulse
-      // also sets this point's target luminosity.
-      const injectionTarget = inInfluence ? alignment * falloff : 0;
-      const current = luminosity[i];
-      const rate = injectionTarget > current ? CONFIG.lumAttack : CONFIG.lumRelease;
-      const injected = current + (injectionTarget - current) * rate;
-
-      // DIFFUSE: blend toward neighbors' PREVIOUS values — this is what
-      // makes energy visibly spread across the surface instead of
-      // staying pinned to whichever point is nearest the cursor.
-      const left = luminosity[(i - 1 + n) % n];
-      const right = luminosity[(i + 1) % n];
-      const neighborAvg = (left + right) * 0.5;
-      luminosityNext[i] = injected + (neighborAvg - injected) * CONFIG.lumDiffusion;
+      // The ONLY place cursor state touches the material: an amount,
+      // handed to the field. What happens to it after this call is
+      // entirely the field's business.
+      material.inject(i, inInfluence ? alignment * falloff : 0);
     }
 
-    // swap buffers — no allocation, just pointer exchange
-    const tmp = luminosity;
-    luminosity = luminosityNext;
-    luminosityNext = tmp;
-
+    material.step();
     pointerVel.x *= CONFIG.velocityDecay;
     pointerVel.y *= CONFIG.velocityDecay;
-
-    // mechanical energy, retained for future use, not read by rendering
-    let sumAbsOffset = 0, sumAbsVel = 0;
-    for (const p of points) {
-      sumAbsOffset += Math.abs(p.offset);
-      sumAbsVel += Math.abs(p.velocity);
-    }
-    const rawEnergy = (sumAbsOffset / n / CONFIG.baseRadius) * 0.6 + (sumAbsVel / n / 200) * 0.4;
-    energySmoothed += (rawEnergy - energySmoothed) * ENERGY_SMOOTHING;
   }
 
 
   /* --------------------------------------------------------------------
-     RENDERER
+     RENDERER — reads ONLY point geometry and material.get()/average().
+     No reference to pointerPos, pointerVel, or distToPointer exists
+     anywhere below this line.
      -------------------------------------------------------------------- */
   function catmullRomToBezierPath(pts) {
     const n = pts.length;
     let d = `M ${pts[0].x.toFixed(2)} ${pts[0].y.toFixed(2)} `;
-
     for (let i = 0; i < n; i++) {
       const p0 = pts[(i - 1 + n) % n];
       const p1 = pts[i];
       const p2 = pts[(i + 1) % n];
       const p3 = pts[(i + 2) % n];
-
       const cp1x = p1.x + (p2.x - p0.x) / 6;
       const cp1y = p1.y + (p2.y - p0.y) / 6;
       const cp2x = p2.x - (p3.x - p1.x) / 6;
       const cp2y = p2.y - (p3.y - p1.y) / 6;
-
       d += `C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)} `;
     }
     return d + 'Z';
@@ -487,8 +391,6 @@
     return x * x * (3 - 2 * x);
   }
 
-  // Pre-create the glow elements once — ambient wash first (renders
-  // underneath), then one blob per point.
   const ambientEl = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
   ambientEl.setAttribute('fill', 'url(#glow-blob)');
   glowLayer.appendChild(ambientEl);
@@ -505,21 +407,15 @@
     const cx = 170, cy = 170;
     const cartesian = points.map(p => {
       const r = CONFIG.baseRadius + p.offset;
-      return {
-        x: cx + r * Math.cos(p.angle),
-        y: cy + r * Math.sin(p.angle)
-      };
+      return { x: cx + r * Math.cos(p.angle), y: cy + r * Math.sin(p.angle) };
     });
 
     const d = catmullRomToBezierPath(cartesian);
     pathEl.setAttribute('d', d);
     clipPathEl.setAttribute('d', d);
 
-    let sumLum = 0;
     for (let i = 0; i < points.length; i++) {
-      const intensity = smoothstep(luminosity[i]);
-      sumLum += intensity;
-
+      const intensity = smoothstep(material.get(i));
       const el = glowEls[i];
       el.setAttribute('cx', cartesian[i].x.toFixed(2));
       el.setAttribute('cy', cartesian[i].y.toFixed(2));
@@ -527,9 +423,7 @@
       el.setAttribute('opacity', intensity.toFixed(3));
     }
 
-    // Ambient wash: soft, wide, driven by the field's average — reads as
-    // a connected internal volume rather than isolated highlights.
-    const avgIntensity = smoothstep(sumLum / points.length);
+    const avgIntensity = smoothstep(material.average());
     ambientEl.setAttribute('cx', cx);
     ambientEl.setAttribute('cy', cy);
     ambientEl.setAttribute('r', CONFIG.ambientRadius);
@@ -549,7 +443,6 @@
     let frameDelta = (now - lastFrameTime) / 1000;
     lastFrameTime = now;
     frameDelta = Math.min(frameDelta, 0.25);
-
     accumulator += frameDelta;
     let steps = 0;
     while (accumulator >= CONFIG.fixedTimestep && steps < MAX_STEPS_PER_FRAME) {
@@ -558,18 +451,16 @@
       accumulator -= CONFIG.fixedTimestep;
       steps++;
     }
-
     render();
     requestAnimationFrame(loop);
   }
-
   requestAnimationFrame(loop);
 
 
   /* --------------------------------------------------------------------
      DEBUG PANEL WIRING
      -------------------------------------------------------------------- */
-  function bindSlider(id, configKey, format = (v) => v) {
+  function bindSlider(id, configKey, format = (v) => v, onChange) {
     const input = document.getElementById(id);
     const label = document.getElementById('val-' + id);
     input.value = CONFIG[configKey];
@@ -578,6 +469,7 @@
       const v = parseFloat(input.value);
       CONFIG[configKey] = v;
       label.textContent = format(v);
+      if (onChange) onChange(v);
     });
   }
 
@@ -587,9 +479,9 @@
   bindSlider('noise', 'noiseAmplitude');
   bindSlider('influence', 'influenceRadius');
   bindSlider('falloff', 'falloffExponent');
-  bindSlider('lumattack', 'lumAttack', (v) => v.toFixed(2));
-  bindSlider('lumrelease', 'lumRelease', (v) => v.toFixed(3));
-  bindSlider('lumdiffusion', 'lumDiffusion', (v) => v.toFixed(2));
+  bindSlider('lumattack', 'lumAttack', (v) => v.toFixed(2), (v) => material.attack = v);
+  bindSlider('lumrelease', 'lumRelease', (v) => v.toFixed(3), (v) => material.release = v);
+  bindSlider('lumdiffusion', 'lumDiffusion', (v) => v.toFixed(2), (v) => material.diffusion = v);
   bindSlider('glowradius', 'glowRadius');
   bindSlider('ambientradius', 'ambientRadius');
 
