@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flowstate OS — Heart Material Engine v1 (Equilibrium v0.4.1)</title>
+<title>Flowstate OS — Heart Material Engine v1 (Equilibrium v0.4.3)</title>
 <style>
   :root {
     --bg: #0a0a0c;
@@ -52,7 +52,7 @@
 <body>
 
   <div id="hint">move your cursor near the shape — press "h" to hide panel</div>
-  <div id="version-tag">Heart Material Engine v1 · Equilibrium v0.4.1</div>
+  <div id="version-tag">Heart Material Engine v1 · Equilibrium v0.4.3</div>
 
   <div id="stage">
     <svg id="equilibrium-svg" viewBox="0 0 340 340">
@@ -95,6 +95,10 @@
       <input type="range" id="glowradius" min="15" max="120" step="1"></div>
     <div class="control"><label>Ambient radius <span id="val-ambientradius"></span></label>
       <input type="range" id="ambientradius" min="60" max="220" step="5"></div>
+    <div class="control"><label>Cursor glow radius <span id="val-cursorglowradius"></span></label>
+      <input type="range" id="cursorglowradius" min="40" max="300" step="5"></div>
+    <div class="control"><label>Cursor follow lag <span id="val-cursorfollowlag"></span></label>
+      <input type="range" id="cursorfollowlag" min="0.05" max="0.6" step="0.01"></div>
   </div>
 
 <script>
@@ -142,6 +146,28 @@
    MaterialField (inject/step/get/average) is the sole source of truth
    the renderer reads, and diffusion is already wired for v0.3's wave
    propagation to build on directly.
+   CHANGELOG (v0.4.1 -> v0.4.2)
+   Single isolated change: material.inject() now uses per-point distance
+   to the cursor's actual position, instead of alignment (facing
+   direction) combined with shape-center distance. The cursor can now
+   inject energy anywhere near the surface — including over the
+   interior/center — not just where a point's outward direction happens
+   to face it. This restores the "cursor is the source of truth"
+   precision of the old flashlight, while everything it feeds into
+   (persistence, decay, diffusion, the renderer reading only field
+   state) is unchanged from v0.4.1. Mechanical deformation/impulse is
+   untouched — this only affects what MaterialField.inject() receives.
+   CHANGELOG (v0.4.2 -> v0.4.3)
+   The ring field's glow blobs are permanently anchored to the 14 fixed
+   points on the perimeter — no matter what their values are, light can
+   only ever render there. That's why brightness stayed perimeter-bound
+   even after v0.4.2 made injection position-based. Added one additional
+   glow element with NO fixed anchor: its position lags toward the raw
+   cursor location every step (so it can sit anywhere, including deep
+   interior), and its magnitude eases via the same attack/release rates
+   as everything else. Rendered last (on top) inside the same clipped
+   glow-layer group, so it's still strictly bounded by the heart's
+   silhouette. Ring field, ring glows, and ambient wash are unchanged.
    ============================================================================ */
 
 
@@ -215,7 +241,9 @@
     lumRelease: 0.03,
     lumDiffusion: 0.12,
     glowRadius: 55,
-    ambientRadius: 130
+    ambientRadius: 130,
+    cursorGlowRadius: 150,     // v0.4.3: NEW — radius of the free glow that follows the cursor anywhere on the surface
+    cursorFollowLag: 0.22      // v0.4.3: NEW — how tightly it tracks the cursor (lower = more lag)
   };
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -305,6 +333,15 @@
   }, { passive: true });
 
   let pointerInside = false;
+
+  // v0.4.3: the free glow — not tied to the 14 ring points. Position
+  // lags toward the actual cursor location (so it can sit anywhere,
+  // including deep interior), magnitude eases via the same attack/
+  // release rates as the ring field, for consistent "gathers fast,
+  // lingers slow" behavior.
+  let cursorEnergy = 0;
+  let cursorGlowX = 170;
+  let cursorGlowY = 170;
   stage.addEventListener('pointerenter', () => { pointerInside = true; });
   stage.addEventListener('pointerleave', () => { pointerInside = false; });
   stage.addEventListener('touchstart', () => { pointerInside = true; }, { passive: true });
@@ -357,10 +394,30 @@
       // The ONLY place cursor state touches the material: an amount,
       // handed to the field. What happens to it after this call is
       // entirely the field's business.
-      material.inject(i, inInfluence ? alignment * falloff : 0);
+      // v0.4.2: injection source changed to per-point distance-to-cursor
+      // (position-based, like the old flashlight) instead of alignment-
+      // gated shape-center distance. This is isolated to the material
+      // field only — mechanical impulse above is untouched.
+      const px = cx + (CONFIG.baseRadius + p.offset) * Math.cos(p.angle);
+      const py = cy + (CONFIG.baseRadius + p.offset) * Math.sin(p.angle);
+      const distToPoint = Math.hypot(pointerPos.x - px, pointerPos.y - py);
+      let rawTPoint = distToPoint / outer;
+      rawTPoint = Math.max(0, Math.min(1, rawTPoint));
+      const pointFalloff = Math.pow(1 - rawTPoint, CONFIG.falloffExponent);
+
+      material.inject(i, pointerInside ? pointFalloff : 0);
     }
 
     material.step();
+
+    // v0.4.3: free glow update — independent of the ring points entirely,
+    // so it can flow anywhere the cursor goes, including the interior.
+    const cursorEnergyTarget = pointerInside ? 1 : 0;
+    const cursorRate = cursorEnergyTarget > cursorEnergy ? CONFIG.lumAttack : CONFIG.lumRelease;
+    cursorEnergy += (cursorEnergyTarget - cursorEnergy) * cursorRate;
+    cursorGlowX += (pointerPos.x - cursorGlowX) * CONFIG.cursorFollowLag;
+    cursorGlowY += (pointerPos.y - cursorGlowY) * CONFIG.cursorFollowLag;
+
     pointerVel.x *= CONFIG.velocityDecay;
     pointerVel.y *= CONFIG.velocityDecay;
   }
@@ -409,6 +466,12 @@
     glowEls.push(c);
   }
 
+  // v0.4.3: appended last so it renders above the ring blobs — this is
+  // the element that can actually be anywhere on the surface.
+  const cursorGlowEl = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  cursorGlowEl.setAttribute('fill', 'url(#glow-blob)');
+  glowLayer.appendChild(cursorGlowEl);
+
   function render() {
     const cx = 170, cy = 170;
     const cartesian = points.map(p => {
@@ -434,6 +497,16 @@
     ambientEl.setAttribute('cy', cy);
     ambientEl.setAttribute('r', CONFIG.ambientRadius);
     ambientEl.setAttribute('opacity', (avgIntensity * 0.5).toFixed(3));
+
+    // v0.4.3: free glow, positioned at the lagged cursor location — the
+    // clip-path on glow-layer keeps it strictly inside the heart's
+    // silhouette, so it reads as light moving through the material
+    // rather than painted on top, even over the interior.
+    const cursorIntensity = smoothstep(cursorEnergy);
+    cursorGlowEl.setAttribute('cx', cursorGlowX.toFixed(2));
+    cursorGlowEl.setAttribute('cy', cursorGlowY.toFixed(2));
+    cursorGlowEl.setAttribute('r', (CONFIG.cursorGlowRadius * (0.7 + 0.3 * cursorIntensity)).toFixed(2));
+    cursorGlowEl.setAttribute('opacity', (cursorIntensity * 0.65).toFixed(3));
   }
 
 
@@ -490,6 +563,8 @@
   bindSlider('lumdiffusion', 'lumDiffusion', (v) => v.toFixed(2), (v) => material.diffusion = v);
   bindSlider('glowradius', 'glowRadius');
   bindSlider('ambientradius', 'ambientRadius');
+  bindSlider('cursorglowradius', 'cursorGlowRadius');
+  bindSlider('cursorfollowlag', 'cursorFollowLag', (v) => v.toFixed(2));
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'h') document.getElementById('debug-panel').classList.toggle('hidden');
