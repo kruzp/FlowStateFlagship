@@ -1,0 +1,23 @@
+precision highp float;
+
+varying vec2 vUv;
+
+uniform sampler2D uVelocity;
+uniform vec2 uTexelSize;
+
+/**
+ * Computes the divergence of the velocity field at each texel using
+ * central differences. Feeds the Jacobi pressure solve — this is the
+ * first half of enforcing incompressibility, which is what makes the
+ * flow swirl and conserve momentum instead of just diffusing outward.
+ */
+void main() {
+  float left = texture2D(uVelocity, vUv - vec2(uTexelSize.x, 0.0)).x;
+  float right = texture2D(uVelocity, vUv + vec2(uTexelSize.x, 0.0)).x;
+  float bottom = texture2D(uVelocity, vUv - vec2(0.0, uTexelSize.y)).y;
+  float top = texture2D(uVelocity, vUv + vec2(0.0, uTexelSize.y)).y;
+
+  float divergence = 0.5 * ((right - left) + (top - bottom));
+
+  gl_FragColor = vec4(divergence, 0.0, 0.0, 1.0);
+}
