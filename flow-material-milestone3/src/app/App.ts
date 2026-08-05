@@ -1,0 +1,109 @@
+import * as THREE from 'three';
+import { Renderer } from '../render/Renderer';
+import { Simulation } from '../core/Simulation';
+import { InputController } from '../interaction/InputController';
+import { ForceInjector } from '../interaction/ForceInjector';
+import { flowstateInk } from '../materials/presets/flowstateInk';
+import vertexShader from '../render/shaders/fullscreen.vert.glsl?raw';
+import colorResponseShader from '../materials/shaders/colorResponse.frag.glsl?raw';
+
+/**
+ * App wires the full pipeline together: Renderer (canvas/context),
+ * Simulation (physics core), InputController + ForceInjector (interaction
+ * layer), and the materials/ color-identity layer that reads Simulation's
+ * output textures. App owns orchestration and the frame loop only — no
+ * physics, input-translation, or color-identity logic lives here.
+ */
+export class App {
+  private renderer: Renderer;
+  private clock: THREE.Clock;
+  private simulation: Simulation;
+  private inputController: InputController;
+  private forceInjector: ForceInjector;
+  private displayMaterial: THREE.ShaderMaterial;
+  private frameId: number | null = null;
+
+  constructor(container: HTMLElement) {
+    this.renderer = new Renderer(container);
+
+    if (!this.renderer.isReady) {
+      this.showFallback(container);
+      throw new Error('WebGL2 not supported — halting App initialization.');
+    }
+
+    this.clock = new THREE.Clock();
+
+    const webgl = this.renderer.webgl;
+    if (!webgl) {
+      throw new Error('Renderer reported ready but exposed no WebGLRenderer.');
+    }
+
+    this.simulation = new Simulation(webgl, window.innerWidth, window.innerHeight);
+
+    this.inputController = new InputController(this.renderer.canvas);
+    this.forceInjector = new ForceInjector(this.simulation);
+
+    this.displayMaterial = new THREE.ShaderMaterial({
+      vertexShader,
+      fragmentShader: colorResponseShader,
+      uniforms: {
+        uDye: { value: null },
+        uVelocity: { value: null },
+        uVorticity: { value: null },
+        uBaseColor: { value: flowstateInk.baseColor },
+        uVelocityColor: { value: flowstateInk.velocityColor },
+        uVorticityColor: { value: flowstateInk.vorticityColor },
+        uVelocityScale: { value: flowstateInk.velocityScale },
+        uVorticityScale: { value: flowstateInk.vorticityScale },
+        uDyeThreshold: { value: flowstateInk.dyeThreshold },
+      },
+    });
+
+    const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.displayMaterial);
+    this.renderer.add(quad);
+
+    this.handleResize();
+    window.addEventListener('resize', this.handleResize);
+  }
+
+  private showFallback(container: HTMLElement): void {
+    container.style.display = 'none';
+    const fallback = document.getElementById('fallback');
+    if (fallback) fallback.style.display = 'flex';
+  }
+
+  private handleResize = (): void => {
+    this.renderer.resize(window.innerWidth, window.innerHeight);
+    this.simulation.resize(window.innerWidth, window.innerHeight);
+  };
+
+  start(): void {
+    const loop = (): void => {
+      const dt = this.clock.getDelta();
+
+      // Interaction -> simulation: input never touches rendering directly.
+      const samples = this.inputController.consume();
+      this.forceInjector.inject(samples);
+
+      // Physics: ambient motion, propagation, projection, settling.
+      this.simulation.step(dt);
+
+      // Display: read the simulation's output textures only.
+      this.displayMaterial.uniforms.uDye.value = this.simulation.dyeTexture;
+      this.displayMaterial.uniforms.uVelocity.value = this.simulation.velocityTexture;
+      this.displayMaterial.uniforms.uVorticity.value = this.simulation.vorticityTexture;
+      this.renderer.render();
+
+      this.frameId = requestAnimationFrame(loop);
+    };
+    this.frameId = requestAnimationFrame(loop);
+  }
+
+  stop(): void {
+    if (this.frameId !== null) cancelAnimationFrame(this.frameId);
+    window.removeEventListener('resize', this.handleResize);
+    this.inputController.dispose();
+    this.simulation.dispose();
+    this.renderer.dispose();
+  }
+}

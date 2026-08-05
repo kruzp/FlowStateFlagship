@@ -1,0 +1,84 @@
+import * as THREE from 'three';
+
+/**
+ * Renderer owns the WebGL2 context, the Three.js renderer instance, and the
+ * scene/camera used to draw a fullscreen quad. It knows nothing about fluid
+ * simulation — this is pure harness code (see the file architecture in the
+ * v2.0 technical plan). Later milestones read simulation textures into the
+ * material this class draws, but never reach into simulation internals.
+ */
+export class Renderer {
+  readonly canvas: HTMLCanvasElement;
+  readonly webgl2Supported: boolean;
+
+  private renderer: THREE.WebGLRenderer | null = null;
+  private scene: THREE.Scene;
+  private camera: THREE.OrthographicCamera;
+
+  constructor(container: HTMLElement) {
+    this.canvas = document.createElement('canvas');
+    container.appendChild(this.canvas);
+
+    this.webgl2Supported = this.checkWebGL2Support();
+
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+    if (this.webgl2Supported) {
+      this.renderer = new THREE.WebGLRenderer({
+        canvas: this.canvas,
+        antialias: false,
+        alpha: false,
+        powerPreference: 'high-performance',
+      });
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    }
+  }
+
+  /**
+   * Explicit capability check, separate from letting Three.js silently pick
+   * whatever context it can get. We need to know definitively before we
+   * build anything that depends on WebGL2-only features — the fluid
+   * solver's float render targets require it.
+   */
+  private checkWebGL2Support(): boolean {
+    try {
+      const ctx = this.canvas.getContext('webgl2');
+      return ctx !== null;
+    } catch {
+      return false;
+    }
+  }
+
+  get isReady(): boolean {
+    return this.renderer !== null;
+  }
+
+  /**
+   * Exposes the underlying THREE.WebGLRenderer so GPGPU/Simulation can run
+   * offscreen passes. Callers must only use this for rendering purposes
+   * (creating render targets, running passes) — scene/camera ownership
+   * stays here.
+   */
+  get webgl(): THREE.WebGLRenderer | null {
+    return this.renderer;
+  }
+
+  add(object: THREE.Object3D): void {
+    this.scene.add(object);
+  }
+
+  resize(width: number, height: number): void {
+    if (!this.renderer) return;
+    this.renderer.setSize(width, height, false);
+  }
+
+  render(): void {
+    if (!this.renderer) return;
+    this.renderer.render(this.scene, this.camera);
+  }
+
+  dispose(): void {
+    this.renderer?.dispose();
+  }
+}
