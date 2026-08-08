@@ -220,12 +220,18 @@
     content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(to right, var(--route) 0 6px, transparent 6px 12px);
     opacity: 0.55;
   }
-  .route-line .dot {
-    position: absolute; top: 50%; left: 4%; width: 9px; height: 9px; border-radius: 50%; background: var(--amber-deep);
-    transform: translate(-50%, -50%);
-    box-shadow: 0 0 0 4px rgba(196,134,58,0.16);
+  .route-line .truck {
+    position: absolute; top: 50%; left: 4%; width: 30px; height: auto;
+    transform: translate(-50%, -84%);
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,0.22));
+    transition: transform 0.2s var(--ease);
     will-change: left;
   }
+  .route-line .truck.facing-left { transform: translate(-50%, -84%) scaleX(-1); }
+  .route-line .truck svg { width: 100%; height: auto; overflow: visible; }
+  .route-line .truck .truck-body { fill: var(--ink-soft); stroke: none; }
+  .route-line .truck .truck-window { fill: var(--paper-soft); opacity: 0.9; }
+  .route-line .truck .truck-wheel { fill: var(--ink); stroke: none; }
   .route-line .stop { position: absolute; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; }
   .route-line .stop.start { left: 4%; }
   .route-line .stop.end { left: 96%; }
@@ -264,16 +270,25 @@
 
   .service-card {
     background: var(--ink); border-radius: 8px; padding: 30px 26px; position: relative; overflow: hidden;
-    transition: transform 0.35s var(--ease);
+    border: 1px solid transparent;
+    transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease), border-color 0.35s var(--ease);
   }
-  .service-card:hover { transform: translateY(-6px); }
+  .service-card:hover, .service-card:focus-within {
+    transform: translateY(-6px);
+    border-color: rgba(196,134,58,0.4);
+    box-shadow: 0 22px 42px -18px rgba(0,0,0,0.55), 0 0 28px -6px rgba(196,134,58,0.35);
+  }
   .service-card .code {
     font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.14em; color: var(--amber-tint);
     border: 1px solid rgba(234,196,139,0.35); border-radius: 3px; display: inline-block; padding: 3px 8px; margin-bottom: 20px;
+    transition: border-color 0.35s var(--ease), background 0.35s var(--ease);
   }
+  .service-card:hover .code { border-color: var(--amber-tint); background: rgba(234,196,139,0.08); }
   .service-card h3 { color: var(--paper-soft); font-size: 1.3rem; text-transform: none; letter-spacing: 0; margin-bottom: 10px; }
   .service-card p { color: var(--muted-on-dark); font-size: 0.92rem; margin: 0; }
-  .service-card .icon { position: absolute; right: 20px; top: 20px; width: 30px; height: 30px; stroke: rgba(255,255,255,0.14); fill: none; stroke-width: 1.4; }
+  .service-card .icon { position: absolute; right: 20px; top: 20px; width: 30px; height: 30px; stroke: rgba(255,255,255,0.14); fill: none; stroke-width: 1.4; transition: stroke 0.35s var(--ease); }
+  .service-card:hover .icon { stroke: rgba(234,196,139,0.4); }
+  @media (prefers-reduced-motion: reduce) { .service-card:hover, .service-card:focus-within { transform: none; } }
 
   /* ============ PROCESS ============ */
   .process-wrap { margin-top: 64px; position: relative; }
@@ -295,25 +310,69 @@
   .process-step p { font-size: 0.94rem; }
 
   /* ============ TESTIMONIALS ============ */
-  .testimonial-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 48px; }
-  @media (max-width: 900px) { .testimonial-grid { grid-template-columns: 1fr; } }
-  .testimonial-card { background: var(--paper-soft); border: 1px solid var(--paper-line); border-radius: 8px; padding: 28px 26px; display: flex; flex-direction: column; gap: 18px; }
-  .testimonial-card .quote-mark { font-family: var(--font-display); font-size: 2.6rem; color: var(--amber-tint); line-height: 1; }
-  .testimonial-card p.quote { color: var(--ink-text); font-size: 0.98rem; margin: 0; }
-  .testimonial-meta { display: flex; align-items: center; gap: 12px; margin-top: auto; padding-top: 12px; border-top: 1px dashed var(--paper-line); }
-  .testimonial-meta .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--route); color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 0.78rem; flex-shrink: 0; }
+  .testimonial-slider { max-width: 680px; margin: 56px auto 0; position: relative; }
+  .testimonial-track { display: grid; }
+  .testimonial-slide {
+    grid-area: 1 / 1;
+    opacity: 0; transform: translateY(10px);
+    pointer-events: none;
+    transition: opacity 0.55s var(--ease), transform 0.55s var(--ease);
+    text-align: center; padding: 8px 8px 0;
+  }
+  .testimonial-slide.is-active { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .testimonial-slide .quote-mark { font-family: var(--font-display); font-size: 3.2rem; color: var(--amber-tint); line-height: 1; margin-bottom: 6px; }
+  .testimonial-slide .stars { justify-content: center; margin: 0 auto 20px; }
+  .testimonial-slide p.quote { color: var(--ink-text); font-size: 1.28rem; line-height: 1.55; max-width: 44ch; margin: 0 auto 26px; font-weight: 500; }
+  .testimonial-meta { display: flex; align-items: center; justify-content: center; gap: 12px; border-top: none; padding-top: 0; margin-top: 0; }
+  .testimonial-meta .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--route); color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 0.8rem; flex-shrink: 0; }
+  .testimonial-meta div { text-align: left; }
   .testimonial-meta div span { display: block; font-size: 0.8rem; }
   .testimonial-meta .name { font-weight: 600; color: var(--ink); }
   .testimonial-meta .role { color: var(--muted); font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; }
   .stars { display: flex; gap: 3px; }
   .stars svg { width: 14px; height: 14px; fill: var(--amber-deep); stroke: none; }
 
+  .testimonial-controls { display: flex; align-items: center; justify-content: center; gap: 22px; margin-top: 40px; }
+  .slider-arrow {
+    width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--paper-line); background: var(--paper-soft);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+    transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
+  }
+  .slider-arrow:hover { border-color: var(--amber-deep); transform: translateY(-2px); }
+  .slider-arrow svg { width: 15px; height: 15px; stroke: var(--ink); fill: none; stroke-width: 1.8; }
+  .slider-dots { display: flex; align-items: center; gap: 9px; }
+  .slider-dot { width: 8px; height: 8px; padding: 0; border-radius: 50%; background: var(--paper-line); border: none; cursor: pointer; transition: background 0.25s var(--ease), transform 0.25s var(--ease); }
+  .slider-dot.is-active { background: var(--amber-deep); transform: scale(1.35); }
+  @media (max-width: 560px) { .testimonial-slide p.quote { font-size: 1.1rem; } }
+
   /* ============ SERVICE AREA ============ */
   .area-section { background: var(--ink); }
   .area-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-top: 48px; }
   @media (max-width: 900px) { .area-grid { grid-template-columns: 1fr; gap: 40px; } }
   .area-map { position: relative; aspect-ratio: 1 / 1; max-width: 420px; margin: 0 auto; }
-  .area-map svg { width: 100%; height: 100%; }
+  .area-map svg { width: 100%; height: 100%; overflow: visible; }
+  .area-map .area-dot {
+    filter: drop-shadow(0 0 3px rgba(246,244,239,0.65)) drop-shadow(0 0 7px rgba(246,244,239,0.3));
+    transition: filter 0.3s var(--ease), transform 0.3s var(--ease);
+    transform-origin: center;
+    transform-box: fill-box;
+    cursor: pointer;
+  }
+  .area-map .area-dot:hover {
+    filter: drop-shadow(0 0 4px rgba(234,196,139,0.95)) drop-shadow(0 0 12px rgba(234,196,139,0.55));
+    transform: scale(1.45);
+  }
+  .area-map .area-dot-center {
+    filter: drop-shadow(0 0 4px rgba(196,134,58,0.75)) drop-shadow(0 0 10px rgba(196,134,58,0.4));
+    transition: filter 0.3s var(--ease), transform 0.3s var(--ease);
+    transform-origin: center;
+    transform-box: fill-box;
+    cursor: pointer;
+  }
+  .area-map .area-dot-center:hover {
+    filter: drop-shadow(0 0 6px rgba(234,196,139,1)) drop-shadow(0 0 16px rgba(196,134,58,0.7));
+    transform: scale(1.25);
+  }
   .area-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
   .area-list li { list-style: none; display: flex; align-items: center; gap: 10px; color: var(--muted-on-dark); font-size: 0.92rem; padding: 9px 0; border-bottom: 1px solid var(--ink-line); }
   .area-list li svg { width: 14px; height: 14px; stroke: var(--amber-tint); fill: none; flex-shrink: 0; }
@@ -443,7 +502,15 @@
         </div>
         <div class="route-line" id="hero-route-line">
           <div class="track"></div>
-          <div class="dot" id="hero-route-dot"></div>
+          <div class="truck" id="hero-route-truck" aria-hidden="true">
+            <svg viewBox="0 0 40 22" xmlns="http://www.w3.org/2000/svg">
+              <path class="truck-body" d="M2 5h20v11H2z"/>
+              <path class="truck-body" d="M22 9h8l5 5v2H22z"/>
+              <rect class="truck-window" x="25" y="10.5" width="5.5" height="3.6" rx="0.6"/>
+              <circle class="truck-wheel" cx="9" cy="18" r="2.3"/>
+              <circle class="truck-wheel" cx="29" cy="18" r="2.3"/>
+            </svg>
+          </div>
           <div class="stop start"><span>Pickup</span></div>
           <div class="stop end"><span>Delivered</span></div>
         </div>
@@ -592,51 +659,67 @@
         <p>Placeholder testimonials — swap in real client quotes at launch.</p>
       </div>
 
-      <div class="testimonial-grid">
-        <div class="testimonial-card reveal">
-          <div class="quote-mark" aria-hidden="true">&ldquo;</div>
-          <div class="stars" aria-label="5 out of 5 stars">
-            <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
-            <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
-            <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
-            <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
-            <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+      <div class="testimonial-slider reveal" role="region" aria-roledescription="carousel" aria-label="Customer testimonials">
+        <div class="testimonial-track" id="testimonial-track">
+          <div class="testimonial-slide is-active">
+            <div class="quote-mark" aria-hidden="true">&ldquo;</div>
+            <div class="stars" aria-label="5 out of 5 stars">
+              <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+              <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+              <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+              <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+              <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+            </div>
+            <p class="quote">They moved my daughter out of her dorm in under an hour and didn't scratch a single wall on the way out. Worth every dollar.</p>
+            <div class="testimonial-meta">
+              <div class="avatar">MK</div>
+              <div><span class="name">Maria K.</span><span class="role">Homeowner, Ames</span></div>
+            </div>
           </div>
-          <p class="quote">They moved my daughter out of her dorm in under an hour and didn't scratch a single wall on the way out. Worth every dollar.</p>
-          <div class="testimonial-meta">
-            <div class="avatar">MK</div>
-            <div><span class="name">Maria K.</span><span class="role">Homeowner, Ames</span></div>
+          <div class="testimonial-slide">
+            <div class="quote-mark" aria-hidden="true">&ldquo;</div>
+            <div class="stars" aria-label="5 out of 5 stars">
+              <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+              <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+              <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+              <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+              <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+            </div>
+            <p class="quote">The quote we got was the quote we paid. After two agency bait-and-switches, that alone earned our repeat business.</p>
+            <div class="testimonial-meta">
+              <div class="avatar">DT</div>
+              <div><span class="name">Derek T.</span><span class="role">Renter, Campustown</span></div>
+            </div>
+          </div>
+          <div class="testimonial-slide">
+            <div class="quote-mark" aria-hidden="true">&ldquo;</div>
+            <div class="stars" aria-label="5 out of 5 stars">
+              <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+              <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+              <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+              <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+              <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+            </div>
+            <p class="quote">Piano, china cabinet, and a dresser that barely fit our old apartment door — all handled without a scratch.</p>
+            <div class="testimonial-meta">
+              <div class="avatar">SN</div>
+              <div><span class="name">Sarah N.</span><span class="role">Family Move, Gilbert</span></div>
+            </div>
           </div>
         </div>
-        <div class="testimonial-card reveal">
-          <div class="quote-mark" aria-hidden="true">&ldquo;</div>
-          <div class="stars" aria-label="5 out of 5 stars">
-            <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
-            <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
-            <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
-            <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
-            <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
+
+        <div class="testimonial-controls">
+          <button class="slider-arrow" id="testimonial-prev" aria-label="Previous testimonial">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <div class="slider-dots" id="testimonial-dots">
+            <button class="slider-dot is-active" data-index="0" aria-label="Show testimonial 1" aria-selected="true"></button>
+            <button class="slider-dot" data-index="1" aria-label="Show testimonial 2" aria-selected="false"></button>
+            <button class="slider-dot" data-index="2" aria-label="Show testimonial 3" aria-selected="false"></button>
           </div>
-          <p class="quote">The quote we got was the quote we paid. After two agency bait-and-switches, that alone earned our repeat business.</p>
-          <div class="testimonial-meta">
-            <div class="avatar">DT</div>
-            <div><span class="name">Derek T.</span><span class="role">Renter, Campustown</span></div>
-          </div>
-        </div>
-        <div class="testimonial-card reveal">
-          <div class="quote-mark" aria-hidden="true">&ldquo;</div>
-          <div class="stars" aria-label="5 out of 5 stars">
-            <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
-            <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
-            <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
-            <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
-            <svg viewBox="0 0 20 20"><polygon points="10,1 12.6,7 19,7.5 14,11.9 15.5,18.2 10,14.8 4.5,18.2 6,11.9 1,7.5 7.4,7"/></svg>
-          </div>
-          <p class="quote">Piano, china cabinet, and a dresser that barely fit our old apartment door — all handled without a scratch.</p>
-          <div class="testimonial-meta">
-            <div class="avatar">SN</div>
-            <div><span class="name">Sarah N.</span><span class="role">Family Move, Gilbert</span></div>
-          </div>
+          <button class="slider-arrow" id="testimonial-next" aria-label="Next testimonial">
+            <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
         </div>
       </div>
     </div>
@@ -659,11 +742,11 @@
             <circle cx="150" cy="150" r="140" fill="none" stroke="rgba(234,196,139,0.18)" stroke-width="1"/>
             <circle cx="150" cy="150" r="100" fill="none" stroke="rgba(234,196,139,0.28)" stroke-width="1"/>
             <circle cx="150" cy="150" r="58" fill="none" stroke="rgba(234,196,139,0.4)" stroke-width="1"/>
-            <circle cx="150" cy="150" r="5" fill="#C4863A"/>
-            <circle cx="112" cy="108" r="3.5" fill="#F6F4EF"/>
-            <circle cx="200" cy="120" r="3.5" fill="#F6F4EF"/>
-            <circle cx="180" cy="205" r="3.5" fill="#F6F4EF"/>
-            <circle cx="95" cy="200" r="3.5" fill="#F6F4EF"/>
+            <circle cx="150" cy="150" r="5" class="area-dot-center" fill="#C4863A"/>
+            <circle cx="112" cy="108" r="3.5" class="area-dot" fill="#F6F4EF"/>
+            <circle cx="200" cy="120" r="3.5" class="area-dot" fill="#F6F4EF"/>
+            <circle cx="180" cy="205" r="3.5" class="area-dot" fill="#F6F4EF"/>
+            <circle cx="95" cy="200" r="3.5" class="area-dot" fill="#F6F4EF"/>
             <text x="150" y="285" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#A7ADB2">25-MILE SERVICE RADIUS</text>
           </svg>
         </div>
@@ -912,20 +995,21 @@
 
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Hero route dot — idle drift, with a gentle spring-follow toward the cursor when it's nearby
+    // Hero route truck — idle drift, with a gentle spring-follow toward the cursor when it's nearby
     var routeLine = document.getElementById('hero-route-line');
-    var routeDot = document.getElementById('hero-route-dot');
+    var routeTruck = document.getElementById('hero-route-truck');
     var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    if (routeLine && routeDot && !reduceMotion) {
+    if (routeLine && routeTruck && !reduceMotion) {
       var minPct = 4, maxPct = 96;
-      var pos = 50;          // current dot position, in %
+      var pos = 50;          // current truck position, in %
       var vel = 0;           // current velocity, %/s
       var pointerPct = 50;   // where the cursor currently maps to, in %
       var pointerActive = false;
       var stiffness = 46;    // how eagerly it pulls toward the target
       var damping = 13.5;    // how quickly it settles — tuned to arrive without hard overshoot
       var last = null;
+      var facingLeft = false;
 
       function autoTargetPct(t) {
         var period = 7200;
@@ -941,7 +1025,7 @@
         pointerActive = true;
       }
 
-      // Track the cursor across the whole card (and a little beyond it) so the dot
+      // Track the cursor across the whole card (and a little beyond it) so the truck
       // starts responding as the cursor "gets close," not only once it's directly on the line.
       var manifestCard = routeLine.closest('.manifest-card') || routeLine;
       manifestCard.addEventListener('mousemove', updatePointerFromEvent);
@@ -957,12 +1041,61 @@
         vel += accel * dt;
         pos += vel * dt;
 
-        routeDot.style.left = pos + '%';
+        routeTruck.style.left = pos + '%';
+
+        // Face the truck toward its direction of travel; ignore tiny jitter near a stop.
+        if (vel > 3 && facingLeft) { facingLeft = false; routeTruck.classList.remove('facing-left'); }
+        else if (vel < -3 && !facingLeft) { facingLeft = true; routeTruck.classList.add('facing-left'); }
+
         requestAnimationFrame(tick);
       }
       requestAnimationFrame(tick);
-    } else if (routeDot) {
-      routeDot.style.left = '50%';
+    } else if (routeTruck) {
+      routeTruck.style.left = '50%';
+    }
+
+    // Testimonial slider — one at a time, with arrow/dot controls and gentle autoplay
+    var track = document.getElementById('testimonial-track');
+    if (track) {
+      var slides = Array.prototype.slice.call(track.querySelectorAll('.testimonial-slide'));
+      var dots = Array.prototype.slice.call(document.querySelectorAll('.slider-dot'));
+      var prevBtn = document.getElementById('testimonial-prev');
+      var nextBtn = document.getElementById('testimonial-next');
+      var sliderRegion = document.querySelector('.testimonial-slider');
+      var current = 0;
+      var autoTimer = null;
+
+      function goTo(index) {
+        var next = (index + slides.length) % slides.length;
+        if (next === current) return;
+        slides[current].classList.remove('is-active');
+        if (dots[current]) { dots[current].classList.remove('is-active'); dots[current].setAttribute('aria-selected', 'false'); }
+        current = next;
+        slides[current].classList.add('is-active');
+        if (dots[current]) { dots[current].classList.add('is-active'); dots[current].setAttribute('aria-selected', 'true'); }
+      }
+
+      function startAuto() {
+        if (reduceMotion) return;
+        clearInterval(autoTimer);
+        autoTimer = setInterval(function () { goTo(current + 1); }, 6500);
+      }
+      function stopAuto() { clearInterval(autoTimer); }
+
+      if (prevBtn) prevBtn.addEventListener('click', function () { goTo(current - 1); startAuto(); });
+      if (nextBtn) nextBtn.addEventListener('click', function () { goTo(current + 1); startAuto(); });
+      dots.forEach(function (dot, i) {
+        dot.addEventListener('click', function () { goTo(i); startAuto(); });
+      });
+
+      if (sliderRegion) {
+        sliderRegion.addEventListener('mouseenter', stopAuto);
+        sliderRegion.addEventListener('mouseleave', startAuto);
+        sliderRegion.addEventListener('focusin', stopAuto);
+        sliderRegion.addEventListener('focusout', startAuto);
+      }
+
+      startAuto();
     }
   })();
 </script>
