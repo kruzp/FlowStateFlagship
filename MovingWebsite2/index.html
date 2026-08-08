@@ -130,6 +130,39 @@
   .reveal.is-visible { opacity: 1; transform: translateY(0); }
   @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } }
 
+  /* Staggered entrances — subtle, one element at a time, never simultaneous */
+  .tag-grid .tag-card,
+  .service-grid .service-card,
+  .process-track .process-step {
+    transition-delay: calc(var(--stagger, 0) * 70ms);
+  }
+  .tag-grid .tag-card:nth-child(1) { --stagger: 0; }
+  .tag-grid .tag-card:nth-child(2) { --stagger: 1; }
+  .tag-grid .tag-card:nth-child(3) { --stagger: 2; }
+  .tag-grid .tag-card:nth-child(4) { --stagger: 3; }
+  .service-grid .service-card:nth-child(1) { --stagger: 0; }
+  .service-grid .service-card:nth-child(2) { --stagger: 1; }
+  .service-grid .service-card:nth-child(3) { --stagger: 2; }
+  .service-grid .service-card:nth-child(4) { --stagger: 3; }
+  .service-grid .service-card:nth-child(5) { --stagger: 4; }
+  .service-grid .service-card:nth-child(6) { --stagger: 5; }
+  .process-track .process-step:nth-child(1) { --stagger: 0; }
+  .process-track .process-step:nth-child(2) { --stagger: 1.4; }
+  .process-track .process-step:nth-child(3) { --stagger: 2.8; }
+
+  /* Hero load-in — plays once on page load, not scroll-triggered */
+  @keyframes hero-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  .hero-copy > * { opacity: 0; animation: hero-rise 0.7s var(--ease) forwards; }
+  .hero-copy .eyebrow { animation-delay: 0.05s; }
+  .hero-copy h1 { animation-delay: 0.16s; }
+  .hero-copy .lede { animation-delay: 0.30s; }
+  .hero-copy .hero-actions { animation-delay: 0.44s; }
+  .hero-copy .hero-trust { animation-delay: 0.56s; }
+  .manifest-wrap { opacity: 0; animation: hero-rise 0.8s var(--ease) forwards; animation-delay: 0.34s; }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-copy > *, .manifest-wrap { opacity: 1; animation: none; }
+  }
+
   /* ============ HEADER ============ */
   header.site-header {
     position: sticky; top: 0; z-index: 100;
@@ -201,10 +234,11 @@
   .hero-trust strong { display: block; font-family: var(--font-display); font-size: 1.7rem; color: var(--paper-soft); text-transform: none; letter-spacing: 0; }
 
   /* Manifest card — signature element */
+  .manifest-wrap { position: relative; }
   .manifest-card {
+    position: relative; z-index: 1;
     background: var(--paper-soft); border-radius: 6px; padding: 28px 26px 30px;
     box-shadow: 0 30px 60px -20px rgba(0,0,0,0.55);
-    position: relative;
   }
   .manifest-card::before {
     content: ""; position: absolute; top: 22px; left: -9px; width: 18px; height: 18px; border-radius: 50%;
@@ -457,8 +491,8 @@
       <a href="#why-us">Why Us</a>
       <a href="#services">Services</a>
       <a href="#process">Process</a>
-      <a href="#reviews">Reviews</a>
       <a href="#area">Service Area</a>
+      <a href="#reviews">Reviews</a>
       <a href="#faq">FAQ</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -495,7 +529,8 @@
         </div>
       </div>
 
-      <div class="manifest-card reveal" aria-hidden="true">
+      <div class="manifest-wrap">
+        <div class="manifest-card reveal" aria-hidden="true">
         <div class="manifest-head">
           <h3>Load Manifest</h3>
           <span class="manifest-id">NO. LJ-00482</span>
@@ -519,6 +554,7 @@
           <div><span>Vehicle</span><b>26' Box Truck</b></div>
           <div><span>Est. Window</span><b>9:00 AM – 11:00 AM</b></div>
           <div><span>Status</span><b style="color:#9C6A2C;">On Schedule</b></div>
+        </div>
         </div>
       </div>
     </div>
@@ -648,6 +684,52 @@
     </div>
   </section>
 
+  <!-- SERVICE AREA -->
+  <section id="area" class="area-section on-dark" aria-labelledby="area-heading">
+    <div class="container">
+      <div class="section-head reveal">
+        <div>
+          <p class="eyebrow">Service Area</p>
+          <h2 id="area-heading">Rooted in Ames, ready across the county.</h2>
+        </div>
+        <p>Placeholder coverage list — confirm exact radius and pricing tiers with the client before launch.</p>
+      </div>
+
+      <div class="area-grid">
+        <div class="area-map reveal" aria-hidden="true">
+          <svg viewBox="0 0 300 300">
+            <circle cx="150" cy="150" r="140" fill="none" stroke="rgba(234,196,139,0.18)" stroke-width="1"/>
+            <circle cx="150" cy="150" r="100" fill="none" stroke="rgba(234,196,139,0.28)" stroke-width="1"/>
+            <circle cx="150" cy="150" r="58" fill="none" stroke="rgba(234,196,139,0.4)" stroke-width="1"/>
+            <circle cx="150" cy="150" r="6.5" class="area-dot-center" fill="#C4863A"/>
+            <circle cx="112" cy="108" r="4.6" class="area-dot" fill="#F6F4EF"/>
+            <circle cx="200" cy="120" r="4.6" class="area-dot" fill="#F6F4EF"/>
+            <circle cx="180" cy="205" r="4.6" class="area-dot" fill="#F6F4EF"/>
+            <circle cx="95" cy="200" r="4.6" class="area-dot" fill="#F6F4EF"/>
+            <circle cx="150" cy="58" r="4.6" class="area-dot" fill="#F6F4EF"/>
+            <circle cx="228" cy="172" r="4.6" class="area-dot" fill="#F6F4EF"/>
+            <circle cx="78" cy="148" r="4.6" class="area-dot" fill="#F6F4EF"/>
+            <circle cx="168" cy="242" r="4.6" class="area-dot" fill="#F6F4EF"/>
+            <text x="150" y="285" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#A7ADB2">25-MILE SERVICE RADIUS</text>
+          </svg>
+        </div>
+        <div>
+          <ul class="area-list">
+            <li><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>Ames</li>
+            <li><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>Campustown</li>
+            <li><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>Gilbert</li>
+            <li><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>Huxley</li>
+            <li><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>Nevada</li>
+            <li><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>Ankeny</li>
+            <li><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>Boone</li>
+            <li><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>Slater</li>
+          </ul>
+          <p class="area-note">Moving somewhere just outside the list? Reach out — we regularly travel beyond our core radius for the right move.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- TESTIMONIALS -->
   <section id="reviews" aria-labelledby="reviews-heading" style="background:var(--paper-soft);">
     <div class="container">
@@ -720,48 +802,6 @@
           <button class="slider-arrow" id="testimonial-next" aria-label="Next testimonial">
             <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
           </button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SERVICE AREA -->
-  <section id="area" class="area-section on-dark" aria-labelledby="area-heading">
-    <div class="container">
-      <div class="section-head reveal">
-        <div>
-          <p class="eyebrow">Service Area</p>
-          <h2 id="area-heading">Rooted in Ames, ready across the county.</h2>
-        </div>
-        <p>Placeholder coverage list — confirm exact radius and pricing tiers with the client before launch.</p>
-      </div>
-
-      <div class="area-grid">
-        <div class="area-map reveal" aria-hidden="true">
-          <svg viewBox="0 0 300 300">
-            <circle cx="150" cy="150" r="140" fill="none" stroke="rgba(234,196,139,0.18)" stroke-width="1"/>
-            <circle cx="150" cy="150" r="100" fill="none" stroke="rgba(234,196,139,0.28)" stroke-width="1"/>
-            <circle cx="150" cy="150" r="58" fill="none" stroke="rgba(234,196,139,0.4)" stroke-width="1"/>
-            <circle cx="150" cy="150" r="5" class="area-dot-center" fill="#C4863A"/>
-            <circle cx="112" cy="108" r="3.5" class="area-dot" fill="#F6F4EF"/>
-            <circle cx="200" cy="120" r="3.5" class="area-dot" fill="#F6F4EF"/>
-            <circle cx="180" cy="205" r="3.5" class="area-dot" fill="#F6F4EF"/>
-            <circle cx="95" cy="200" r="3.5" class="area-dot" fill="#F6F4EF"/>
-            <text x="150" y="285" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#A7ADB2">25-MILE SERVICE RADIUS</text>
-          </svg>
-        </div>
-        <div>
-          <ul class="area-list">
-            <li><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>Ames</li>
-            <li><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>Campustown</li>
-            <li><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>Gilbert</li>
-            <li><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>Huxley</li>
-            <li><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>Nevada</li>
-            <li><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>Ankeny</li>
-            <li><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>Boone</li>
-            <li><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>Slater</li>
-          </ul>
-          <p class="area-note">Moving somewhere just outside the list? Reach out — we regularly travel beyond our core radius for the right move.</p>
         </div>
       </div>
     </div>
@@ -1096,6 +1136,71 @@
       }
 
       startAuto();
+    }
+
+    // Service-area map dots — proximity glow: blooms smoothly as the cursor approaches,
+    // fades slowly back to rest when it leaves. Not a hard on/off hover switch.
+    var areaSection = document.querySelector('.area-section');
+    var areaSvg = document.querySelector('.area-map svg');
+    var areaDots = areaSvg ? Array.prototype.slice.call(areaSvg.querySelectorAll('.area-dot, .area-dot-center')) : [];
+
+    if (areaSection && areaSvg && areaDots.length && !reduceMotion) {
+      var dotState = areaDots.map(function (el) {
+        return {
+          el: el,
+          cx: parseFloat(el.getAttribute('cx')),
+          cy: parseFloat(el.getAttribute('cy')),
+          isCenter: el.classList.contains('area-dot-center'),
+          intensity: 0
+        };
+      });
+      var pointerX = null, pointerY = null;
+      var proximityRadius = 78; // svg units — dots start responding well before the cursor reaches them
+
+      function updateAreaPointer(e) {
+        var rect = areaSvg.getBoundingClientRect();
+        var scale = 300 / rect.width; // square viewBox, so one scale factor covers both axes
+        pointerX = (e.clientX - rect.left) * scale;
+        pointerY = (e.clientY - rect.top) * scale;
+      }
+      areaSection.addEventListener('mousemove', updateAreaPointer);
+      areaSection.addEventListener('mouseleave', function () { pointerX = null; pointerY = null; });
+
+      var lastAreaTick = null;
+      function areaTick(now) {
+        if (lastAreaTick === null) lastAreaTick = now;
+        var dt = Math.min(0.05, (now - lastAreaTick) / 1000);
+        lastAreaTick = now;
+
+        dotState.forEach(function (d) {
+          var target = 0;
+          if (pointerX !== null) {
+            var dx = pointerX - d.cx, dy = pointerY - d.cy;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            var t = Math.max(0, 1 - dist / proximityRadius);
+            target = t * t * (3 - 2 * t); // smoothstep — gentle falloff, not a hard edge
+          }
+          // Rise quickly toward a nearby cursor, fall slowly back to rest once it leaves.
+          var rate = target > d.intensity ? 7.5 : 1.4;
+          d.intensity += (target - d.intensity) * Math.min(1, rate * dt);
+          if (d.intensity < 0.003) d.intensity = 0;
+
+          var scale = 1 + d.intensity * (d.isCenter ? 0.32 : 0.5);
+          d.el.style.transform = 'scale(' + scale.toFixed(3) + ')';
+
+          var rgb = d.isCenter ? '196,134,58' : '234,196,139';
+          var blurNear = (d.isCenter ? 4 : 3) + d.intensity * 5;
+          var blurFar = (d.isCenter ? 10 : 7) + d.intensity * 13;
+          var alphaNear = (d.isCenter ? 0.75 : 0.5) + d.intensity * 0.4;
+          var alphaFar = (d.isCenter ? 0.4 : 0.25) + d.intensity * 0.4;
+          d.el.style.filter =
+            'drop-shadow(0 0 ' + blurNear.toFixed(1) + 'px rgba(' + rgb + ',' + alphaNear.toFixed(2) + ')) ' +
+            'drop-shadow(0 0 ' + blurFar.toFixed(1) + 'px rgba(' + rgb + ',' + alphaFar.toFixed(2) + '))';
+        });
+
+        requestAnimationFrame(areaTick);
+      }
+      requestAnimationFrame(areaTick);
     }
   })();
 </script>
