@@ -1,0 +1,26 @@
+precision highp float;
+
+varying vec2 vUv;
+
+uniform sampler2D uDye;
+uniform sampler2D uVelocity;
+
+/**
+ * TEMPORARY debug visualization only. This exists so the physics pipeline
+ * is visible before the real materials/ color-identity layer is built
+ * (milestone 7). It does the minimum: dye magnitude as a soft glow, plus a
+ * faint velocity-driven tint so motion direction is legible while tuning.
+ * This shader gets deleted, not extended, once materials/ lands.
+ */
+void main() {
+  vec3 dye = texture2D(uDye, vUv).rgb;
+  vec2 velocity = texture2D(uVelocity, vUv).xy;
+
+  vec3 base = vec3(0.02, 0.02, 0.025);
+  float dyeAmount = clamp(length(dye), 0.0, 1.5);
+  float speed = clamp(length(velocity) * 0.01, 0.0, 1.0);
+
+  vec3 color = base + dyeAmount * vec3(0.05, 0.85, 0.65) + speed * vec3(0.0, 0.1, 0.3);
+
+  gl_FragColor = vec4(color, 1.0);
+}
