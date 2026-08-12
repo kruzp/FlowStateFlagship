@@ -1,0 +1,30 @@
+import * as THREE from 'three';
+import { Simulation } from '../core/Simulation';
+import { PointerSample } from './InputController';
+
+/
+ * ForceInjector is the only bridge between raw input and the simulation
+ * core. It decides how a pointer sample becomes a physical impulse (how
+ * much velocity, how much dye) and calls Simulation.splat() directly — the
+ * core never reaches out to read input, input is always pushed in here.
+ *
+ * Note: the dye value injected here is a neutral, uncolored magnitude.
+ * Deciding what color that dye renders as is explicitly NOT this layer's
+ * job — that belongs to materials/ (milestone 7), which reads the dye
+ * field's magnitude/velocity and produces the actual Flowstate palette.
+ */
+export class ForceInjector {
+  constructor(private simulation: Simulation) {}
+
+  inject(samples: PointerSample[]): void {
+    for (const sample of samples) {
+      this.simulation.splat({
+        x: sample.x,
+        y: sample.y,
+        dx: sample.dx * sample.strength,
+        dy: sample.dy * sample.strength,
+        color: new THREE.Vector3(sample.strength, sample.strength, sample.strength),
+      });
+    }
+  }
+}

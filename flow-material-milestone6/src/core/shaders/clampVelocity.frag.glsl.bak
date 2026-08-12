@@ -1,0 +1,25 @@
+precision highp float;
+
+varying vec2 vUv;
+
+uniform sampler2D uVelocity;
+uniform float uMaxSpeed;
+
+/
+ * Clamps velocity magnitude to a hard ceiling. This is deliberately dumb
+ * and unconditional — it is not tuning the material's feel, it is a
+ * stability backstop so that any single misbehaving force source (a
+ * biased ambient field, an overly aggressive confinement coefficient, a
+ * frame hitch) cannot compound into a runaway that dominates the visible
+ * result. A well-tuned material should rarely brush this ceiling.
+ */
+void main() {
+  vec2 velocity = texture2D(uVelocity, vUv).xy;
+  float speed = length(velocity);
+
+  if (speed > uMaxSpeed) {
+    velocity = velocity / speed * uMaxSpeed;
+  }
+
+  gl_FragColor = vec4(velocity, 0.0, 1.0);
+}

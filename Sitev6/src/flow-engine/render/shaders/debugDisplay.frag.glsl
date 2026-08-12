@@ -44,44 +44,24 @@ void main() {
     float diffuse = clamp(
         dot(normal, lightDir) * 0.5 + 0.75,
         0.6,
-        1.15
+        1.0
     );
 
-    // Existing restrained green → teal material.
-    vec3 glow =
-        dyeAmount * vec3(0.015, 0.16, 0.38) * diffuse;
+    vec3 baseColor = vec3(0.035, 0.18, 0.58);
+    vec3 shaded = baseColor * dyeAmount * (0.55 + 0.45 * diffuse);
 
-    // Existing subtle velocity tint.
-    vec3 tint =
-        speed * vec3(0.008, 0.035, 0.10);
-
-    // Very subtle wet/glass-like highlight.
-    // This only affects the visible material.
     vec3 viewDir = vec3(0.0, 0.0, 1.0);
+    float rim = pow(1.0 - max(dot(normal, viewDir), 0.0), 2.0);
+    vec3 rimColor = vec3(0.75, 0.92, 1.0) * rim * 0.08 * dyeAmount;
 
-    vec3 halfDir = normalize(lightDir + viewDir);
-
-    float specular = pow(
-        max(dot(normal, halfDir), 0.0),
-        32.0
-    );
-
-    specular *= dyeAmount * 0.18;
-
-    vec3 highlight =
-        vec3(0.25, 0.9, 0.8) * specular;
-
-    vec3 color =
-        glow +
-        tint +
-        highlight;
+    vec3 color = shaded + rimColor;
 
     // Keep the material transparent when resting.
     float alpha = clamp(
-        dyeAmount * 0.75 +
-        speed * 0.12,
+        dyeAmount * 0.72 +
+        speed * 0.08,
         0.0,
-        0.9
+        0.85
     );
 
     // Premultiplied-alpha output.

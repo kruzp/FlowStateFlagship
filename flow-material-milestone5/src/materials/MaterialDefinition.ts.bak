@@ -1,0 +1,25 @@
+import * as THREE from 'three';
+
+/
+ * MaterialDefinition is the only place color-identity decisions live.
+ * Simulation and interaction never import from here, and this layer never
+ * imports simulation internals — it only reads the velocity/vorticity/dye
+ * textures Simulation exposes. That boundary is what lets a future preset
+ * (a different Flowstate surface, a client-specific variant, etc.) swap in
+ * without touching the physics at all.
+ */
+export interface MaterialDefinition {
+  / Resting-state color where no dye/energy is present. */
+  baseColor: THREE.Vector3;
+  / Accent driven by velocity (speed) — reads as green in the Flowstate palette. */
+  velocityColor: THREE.Vector3;
+  / Accent driven by vorticity (swirl) — reads as blue. Overlapping with
+   *  velocityColor produces teal — that overlap is discovered, not mixed in explicitly. */
+  vorticityColor: THREE.Vector3;
+  / Speed at which velocityColor reaches full strength. */
+  velocityScale: number;
+  / Vorticity magnitude at which vorticityColor reaches full strength. */
+  vorticityScale: number;
+  / Minimum dye density before any accent color shows — keeps dye-free areas near-black. */
+  dyeThreshold: number;
+}

@@ -1,0 +1,41 @@
+precision highp float;
+
+varying vec2 vUv;
+
+uniform sampler2D uDye;
+uniform sampler2D uVelocity;
+uniform sampler2D uVorticity;
+
+uniform vec3 uBaseColor;
+uniform vec3 uVelocityColor;
+uniform vec3 uVorticityColor;
+uniform float uVelocityScale;
+uniform float uVorticityScale;
+uniform float uDyeThreshold;
+
+/
+ * The real color-identity pass. Velocity magnitude drives the green
+ * accent, vorticity magnitude drives the blue accent, and they combine
+ * additively — teal is never chosen directly, it emerges wherever both
+ * speed and swirl are present at once, which is exactly the leading edge
+ * of an injected plume as it rolls up. Dye density gates where any color
+ * shows at all, so the effect stays confined to the visible "ink" rather
+ * than tinting the whole canvas.
+ */
+void main() {
+  vec3 dye = texture2D(uDye, vUv).rgb;
+  vec2 velocity = texture2D(uVelocity, vUv).xy;
+  float vorticity = texture2D(uVorticity, vUv).x;
+
+  float dyeAmount = smoothstep(uDyeThreshold, uDyeThreshold + 0.15, length(dye));
+  float speed = length(velocity);
+  float swirl = abs(vorticity);
+
+  float velocityFactor = smoothstep(0.0, uVelocityScale, speed);
+  float vorticityFactor = smoothstep(0.0, uVorticityScale, swirl);
+
+  vec3 energy = uVelocityColor * velocityFactor + uVorticityColor * vorticityFactor;
+  vec3 color = uBaseColor + energy * dyeAmount;
+
+  gl_FragColor = vec4(color, 1.0);
+}

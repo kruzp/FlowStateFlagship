@@ -1,0 +1,28 @@
+import * as THREE from 'three';
+import { GPGPU, DoubleFBO } from '../GPGPU';
+
+/
+ * VelocityField owns nothing but the double-buffered velocity texture.
+ * It has no idea what advection, projection, or splatting mean — those
+ * are operations Simulation.ts performs using this field's buffers.
+ * Keeping this class "dumb" is deliberate: it's just typed, named storage.
+ */
+export class VelocityField {
+  readonly fbo: DoubleFBO;
+
+  constructor(gpgpu: GPGPU, width: number, height: number, type: THREE.TextureDataType) {
+    this.fbo = gpgpu.createDoubleFBO(width, height, type);
+  }
+
+  get texture(): THREE.Texture {
+    return this.fbo.texture;
+  }
+
+  swap(): void {
+    this.fbo.swap();
+  }
+
+  dispose(): void {
+    this.fbo.dispose();
+  }
+}

@@ -28,12 +28,17 @@ export interface SimulationConfig {
 export const DEFAULT_SIMULATION_CONFIG: SimulationConfig = {
   simResolution: 128,
   dyeResolution: 512,
+
   velocityDissipation: 0.08,
   dyeDissipation: 0.45,
+
   ambientStrength: 0.0,
   ambientScale: 3.0,
+
   pressureIterations: 20,
+
   splatRadius: 0.003,
+
   curlStrength: 4.0,
 };
 

@@ -10,43 +10,47 @@ import advectFrag from './shaders/advect.frag.glsl?raw';
 import divergenceFrag from './shaders/divergence.frag.glsl?raw';
 import pressureFrag from './shaders/pressure.frag.glsl?raw';
 import gradientSubtractFrag from './shaders/gradientSubtract.frag.glsl?raw';
-import vorticityFrag from './shaders/curl.frag.glsl?raw';
-import confinementFrag from './shaders/vorticityConfinement.frag.glsl?raw';
+import vorticityFrag from './shaders/vorticity.frag.glsl?raw';
+import confinementFrag from './shaders/confinement.frag.glsl?raw';
+import clampVelocityFrag from './shaders/clampVelocity.frag.glsl?raw';
 
 export interface SimulationConfig {
-  /** Simulation grid resolution along the longer axis. Lower = faster, softer. */
+  / Simulation grid resolution along the longer axis. Lower = faster, softer. */
   simResolution: number;
-  /** Dye/display resolution along the longer axis. Can exceed simResolution. */
+  / Dye/display resolution along the longer axis. Can exceed simResolution. */
   dyeResolution: number;
-  /** Velocity lost per second (settling toward rest). Higher = calms down faster. */
+  / Velocity lost per second (settling toward rest). Higher = calms down faster. */
   velocityDissipation: number;
-  /** Dye lost per second (settling/fading toward rest). */
+  / Dye lost per second (settling/fading toward rest). */
   dyeDissipation: number;
-  /** Strength of the ambient curl-noise force — the resting-state motion. */
+  / Strength of the ambient curl-noise force — the resting-state motion. */
   ambientStrength: number;
-  /** Spatial scale of the ambient curl-noise field. */
+  / Spatial scale of the ambient curl-noise field. */
   ambientScale: number;
-  /** Jacobi iterations for the pressure solve. More = more accurate incompressibility. */
+  / Jacobi iterations for the pressure solve. More = more accurate incompressibility. */
   pressureIterations: number;
-  /** Gaussian falloff radius (in uv units) for injected splats. */
+  / Gaussian falloff radius (in uv units) for injected splats. */
   splatRadius: number;
-  /** Vorticity confinement strength — how strongly existing swirl is reinforced. */
+  / Vorticity confinement strength — how strongly existing swirl is reinforced. */
   curlStrength: number;
+  / Hard velocity magnitude ceiling — a stability backstop, not a feel knob. */
+  maxSpeed: number;
 }
 
 export const DEFAULT_SIMULATION_CONFIG: SimulationConfig = {
-  simResolution: 128,
+  simResolution: 256,
   dyeResolution: 512,
-  velocityDissipation: 0.45,
-  dyeDissipation: 0.85,
-  ambientStrength: 0.0,
+  velocityDissipation: 0.2,
+  dyeDissipation: 0.6,
+  ambientStrength: 0.35,
   ambientScale: 3.0,
-  pressureIterations: 16,
+  pressureIterations: 20,
   splatRadius: 0.003,
-  curlStrength: 0,
+  curlStrength: 4,
+  maxSpeed: 45,
 };
 
-/** A single injected impulse — the only way the outside world touches the field. */
+/ A single injected impulse — the only way the outside world touches the field. */
 export interface Impulse {
   x: number; // 0..1
   y: number; // 0..1
@@ -55,7 +59,7 @@ export interface Impulse {
   color: THREE.Vector3; // dye color to inject alongside the velocity
 }
 
-/**
+/
  * Simulation owns the entire physics pipeline: ambient force -> injection
  * -> advection -> pressure projection -> dye transport. It knows nothing
  * about the cursor (that's interaction/) or about final display color
@@ -83,6 +87,7 @@ export class Simulation {
   private gradientSubtractMaterial: THREE.ShaderMaterial;
   private vorticityMaterial: THREE.ShaderMaterial;
   private confinementMaterial: THREE.ShaderMaterial;
+  private clampVelocityMaterial: THREE.ShaderMaterial;
 
   private elapsed = 0;
   private aspect: number;
@@ -201,6 +206,15 @@ export class Simulation {
         uDeltaTime: { value: 0 },
       },
     });
+
+    this.clampVelocityMaterial = new THREE.ShaderMaterial({
+      vertexShader: fullscreenVert,
+      fragmentShader: clampVelocityFrag,
+      uniforms: {
+        uVelocity: { value: null },
+        uMaxSpeed: { value: this.config.maxSpeed },
+      },
+    });
   }
 
   private resolutionFor(longerAxis: number): { width: number; height: number } {
@@ -218,12 +232,12 @@ export class Simulation {
     return this.dye.texture;
   }
 
-  /** Vorticity (swirl) magnitude field — read by materials/ for the blue color accent. */
+  / Vorticity (swirl) magnitude field — read by materials/ for the blue color accent. */
   get vorticityTexture(): THREE.Texture {
     return this.vorticityTarget.texture;
   }
 
-  /** Injects a single impulse: velocity change + dye, both via the splat pass. */
+  / Injects a single impulse: velocity change + dye, both via the splat pass. */
   splat(impulse: Impulse): void {
     const forceScale = 1200; // maps normalized pointer delta into velocity-field units
 
@@ -240,7 +254,7 @@ export class Simulation {
     this.dye.swap();
   }
 
-  /**
+  /
    * Advances the simulation by one frame. External injection (cursor-driven
    * splats) is expected to have already been applied via `splat()` — by
    * ForceInjector — before this is called.
@@ -251,20 +265,22 @@ export class Simulation {
    * a non-divergence-free field carries compression artifacts forward and
    * is what previously made injected motion look linear instead of
    * swirling. This ordering matches the standard real-time stable-fluids
-   * pipeline (Stam; Fedkiw et al.'s vorticity confinement).
+   * pipeline (Stam; Fedkiw et al.'s vorticity confinement). A hard velocity
+   * clamp runs after every force-injection point (ambient, confinement,
+   * self-advection) as a stability backstop — see clampVelocity().
    */
   step(deltaTime: number): void {
     const dt = Math.min(deltaTime, 1 / 30); // clamp to keep the solver stable on frame hitches
     this.elapsed += dt;
 
     // 1. Ambient curl-noise force — the persistent, autonomous resting motion.
-    if (this.config.ambientStrength > 0) {
-      this.curlForceMaterial.uniforms.uVelocity.value = this.velocity.texture;
-      this.curlForceMaterial.uniforms.uTime.value = this.elapsed;
-      this.curlForceMaterial.uniforms.uDeltaTime.value = dt;
-      this.gpgpu.pass(this.curlForceMaterial, this.velocity.fbo.write);
-      this.velocity.swap();
-    }
+    this.curlForceMaterial.uniforms.uVelocity.value = this.velocity.texture;
+    this.curlForceMaterial.uniforms.uTime.value = this.elapsed;
+    this.curlForceMaterial.uniforms.uDeltaTime.value = dt;
+    this.gpgpu.pass(this.curlForceMaterial, this.velocity.fbo.write);
+    this.velocity.swap();
+
+    this.clampVelocity();
 
     // 2. Measure vorticity, then confine it — reinforce existing rotation
     //    so injected energy rolls up into swirls instead of diffusing.
@@ -276,6 +292,8 @@ export class Simulation {
     this.confinementMaterial.uniforms.uDeltaTime.value = dt;
     this.gpgpu.pass(this.confinementMaterial, this.velocity.fbo.write);
     this.velocity.swap();
+
+    this.clampVelocity();
 
     // 3. Pressure projection — enforce incompressibility so the field
     //    swirls and conserves momentum instead of just diffusing.
@@ -304,6 +322,8 @@ export class Simulation {
     this.gpgpu.pass(this.advectMaterial, this.velocity.fbo.write);
     this.velocity.swap();
 
+    this.clampVelocity();
+
     // 5. Advect dye through the same velocity field.
     this.advectMaterial.uniforms.uVelocity.value = this.velocity.texture;
     this.advectMaterial.uniforms.uSource.value = this.dye.texture;
@@ -320,6 +340,12 @@ export class Simulation {
     // splat positioning correctness — not reallocate buffers on every drag.
     this.aspect = width / height;
     this.splatMaterial.uniforms.uAspect.value = this.aspect;
+  }
+
+  private clampVelocity(): void {
+    this.clampVelocityMaterial.uniforms.uVelocity.value = this.velocity.texture;
+    this.gpgpu.pass(this.clampVelocityMaterial, this.velocity.fbo.write);
+    this.velocity.swap();
   }
 
   dispose(): void {
