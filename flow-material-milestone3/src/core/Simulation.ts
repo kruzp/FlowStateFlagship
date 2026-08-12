@@ -16,59 +16,74 @@ import confinementFrag from './shaders/confinement.frag.glsl?raw';
 export interface SimulationConfig {
   /** Simulation grid resolution along the longer axis. Lower = faster, softer. */
   simResolution: number;
+
   /** Dye/display resolution along the longer axis. Can exceed simResolution. */
   dyeResolution: number;
+
   /** Velocity lost per second (settling toward rest). Higher = calms down faster. */
   velocityDissipation: number;
+
   /** Dye lost per second (settling/fading toward rest). */
   dyeDissipation: number;
+
   /** Strength of the ambient curl-noise force — the resting-state motion. */
   ambientStrength: number;
+
   /** Spatial scale of the ambient curl-noise field. */
   ambientScale: number;
-  /** Jacobi iterations for the pressure solve. More = more accurate incompressibility. */
+
+  /** Jacobi iterations for the pressure solve. */
   pressureIterations: number;
+
   /** Gaussian falloff radius (in uv units) for injected splats. */
   splatRadius: number;
   /** Vorticity confinement strength — how strongly existing swirl is reinforced. */
   curlStrength: number;
-}
 
+}
 export const DEFAULT_SIMULATION_CONFIG: SimulationConfig = {
   simResolution: 128,
   dyeResolution: 512,
+
+  // Keep the trail smooth and allow it to settle naturally.
   velocityDissipation: 0.2,
   dyeDissipation: 0.6,
-  ambientStrength: 0.35,
+
+  // Very low autonomous motion.
+  // This prevents the resting field from constantly generating swirls.
+  ambientStrength: 0.02,
   ambientScale: 3.0,
+
   pressureIterations: 20,
+
+  // Keep the input localized.
   splatRadius: 0.003,
-  curlStrength: 22,
+
+  // Much weaker confinement.
+  // Large structures can still curl, but small vortices are not
+  // aggressively amplified.
+  curlStrength: 4,
 };
 
 /** A single injected impulse — the only way the outside world touches the field. */
 export interface Impulse {
-  x: number; // 0..1
-  y: number; // 0..1
-  dx: number; // velocity-space delta
+  x: number;
+  y: number;
+  dx: number;
   dy: number;
-  color: THREE.Vector3; // dye color to inject alongside the velocity
+  color: THREE.Vector3;
 }
 
-/**
- * Simulation owns the entire physics pipeline: ambient force -> injection
- * -> advection -> pressure projection -> dye transport. It knows nothing
- * about the cursor (that's interaction/) or about final display color
- * (that's materials/, coming later) — it exposes only the resulting
- * velocity and dye textures for those layers to read.
- */
 export class Simulation {
   private gpgpu: GPGPU;
   private config: SimulationConfig;
 
   private velocity: VelocityField;
   private dye: DyeField;
-  private pressure: { fbo: ReturnType<GPGPU['createDoubleFBO']> };
+  private pressure: {
+    fbo: ReturnType<GPGPU['createDoubleFBO']>;
+  };
+
   private divergenceTarget: THREE.WebGLRenderTarget;
   private vorticityTarget: THREE.WebGLRenderTarget;
 
@@ -87,9 +102,18 @@ export class Simulation {
   private elapsed = 0;
   private aspect: number;
 
-  constructor(renderer: THREE.WebGLRenderer, width: number, height: number, config: Partial<SimulationConfig> = {}) {
+  constructor(
+    renderer: THREE.WebGLRenderer,
+    width: number,
+    height: number,
+    config: Partial<SimulationConfig> = {},
+  ) {
     this.gpgpu = new GPGPU(renderer);
-    this.config = { ...DEFAULT_SIMULATION_CONFIG, ...config };
+    this.config = {
+      ...DEFAULT_SIMULATION_CONFIG,
+      ...config,
+    };
+
     this.aspect = width / height;
 
     const type = GPGPU.preferredType(renderer);
@@ -97,24 +121,59 @@ export class Simulation {
     const simSize = this.resolutionFor(this.config.simResolution);
     const dyeSize = this.resolutionFor(this.config.dyeResolution);
 
-    this.velocity = new VelocityField(this.gpgpu, simSize.width, simSize.height, type);
-    this.dye = new DyeField(this.gpgpu, dyeSize.width, dyeSize.height, type);
-    this.pressure = { fbo: this.gpgpu.createDoubleFBO(simSize.width, simSize.height, type) };
-    this.divergenceTarget = new THREE.WebGLRenderTarget(simSize.width, simSize.height, {
+    this.velocity = new VelocityField(
+      this.gpgpu,
+      simSize.width,
+      simSize.height,
       type,
-      format: THREE.RGBAFormat,
-      depthBuffer: false,
-      stencilBuffer: false,
-    });
-    this.vorticityTarget = new THREE.WebGLRenderTarget(simSize.width, simSize.height, {
-      type,
-      format: THREE.RGBAFormat,
-      depthBuffer: false,
-      stencilBuffer: false,
-    });
+    );
 
-    this.simTexelSize = new THREE.Vector2(1 / simSize.width, 1 / simSize.height);
-    this.dyeTexelSize = new THREE.Vector2(1 / dyeSize.width, 1 / dyeSize.height);
+    this.dye = new DyeField(
+      this.gpgpu,
+      dyeSize.width,
+      dyeSize.height,
+      type,
+    );
+
+    this.pressure = {
+      fbo: this.gpgpu.createDoubleFBO(
+        simSize.width,
+        simSize.height,
+        type,
+      ),
+    };
+
+    this.divergenceTarget = new THREE.WebGLRenderTarget(
+      simSize.width,
+      simSize.height,
+      {
+        type,
+        format: THREE.RGBAFormat,
+        depthBuffer: false,
+        stencilBuffer: false,
+      },
+    );
+
+    this.vorticityTarget = new THREE.WebGLRenderTarget(
+      simSize.width,
+      simSize.height,
+      {
+        type,
+        format: THREE.RGBAFormat,
+        depthBuffer: false,
+        stencilBuffer: false,
+      },
+    );
+
+    this.simTexelSize = new THREE.Vector2(
+      1 / simSize.width,
+      1 / simSize.height,
+    );
+
+    this.dyeTexelSize = new THREE.Vector2(
+      1 / dyeSize.width,
+      1 / dyeSize.height,
+    );
 
     this.curlForceMaterial = new THREE.ShaderMaterial({
       vertexShader: fullscreenVert,
@@ -203,11 +262,21 @@ export class Simulation {
     });
   }
 
-  private resolutionFor(longerAxis: number): { width: number; height: number } {
+  private resolutionFor(longerAxis: number): {
+    width: number;
+    height: number;
+  } {
     if (this.aspect >= 1) {
-      return { width: Math.round(longerAxis), height: Math.round(longerAxis / this.aspect) };
+      return {
+        width: Math.round(longerAxis),
+        height: Math.round(longerAxis / this.aspect),
+      };
     }
-    return { width: Math.round(longerAxis * this.aspect), height: Math.round(longerAxis) };
+
+    return {
+      width: Math.round(longerAxis * this.aspect),
+      height: Math.round(longerAxis),
+    };
   }
 
   get velocityTexture(): THREE.Texture {
@@ -218,106 +287,218 @@ export class Simulation {
     return this.dye.texture;
   }
 
-  /** Vorticity (swirl) magnitude field — read by materials/ for the blue color accent. */
   get vorticityTexture(): THREE.Texture {
     return this.vorticityTarget.texture;
   }
 
-  /** Injects a single impulse: velocity change + dye, both via the splat pass. */
   splat(impulse: Impulse): void {
-    const forceScale = 1200; // maps normalized pointer delta into velocity-field units
+    /*
+     * Keep the injection strong enough to feel responsive,
+     * but avoid creating unnecessarily violent velocity gradients.
+     */
+    const forceScale = 1000;
 
-    this.splatMaterial.uniforms.uTarget.value = this.velocity.texture;
-    this.splatMaterial.uniforms.uPoint.value.set(impulse.x, impulse.y);
-    this.splatMaterial.uniforms.uValue.value.set(impulse.dx * forceScale, impulse.dy * forceScale, 0);
-    this.splatMaterial.uniforms.uRadius.value = this.config.splatRadius;
-    this.gpgpu.pass(this.splatMaterial, this.velocity.fbo.write);
+    // Velocity injection.
+    this.splatMaterial.uniforms.uTarget.value =
+      this.velocity.texture;
+
+    this.splatMaterial.uniforms.uPoint.value.set(
+      impulse.x,
+      impulse.y,
+    );
+
+    this.splatMaterial.uniforms.uValue.value.set(
+      impulse.dx * forceScale,
+      impulse.dy * forceScale,
+      0,
+    );
+
+    this.splatMaterial.uniforms.uRadius.value =
+      this.config.splatRadius;
+
+    this.gpgpu.pass(
+      this.splatMaterial,
+      this.velocity.fbo.write,
+    );
+
     this.velocity.swap();
 
-    this.splatMaterial.uniforms.uTarget.value = this.dye.texture;
-    this.splatMaterial.uniforms.uValue.value.copy(impulse.color);
-    this.gpgpu.pass(this.splatMaterial, this.dye.fbo.write);
+    // Dye injection.
+    this.splatMaterial.uniforms.uTarget.value =
+      this.dye.texture;
+
+    this.splatMaterial.uniforms.uValue.value.copy(
+      impulse.color,
+    );
+
+    this.gpgpu.pass(
+      this.splatMaterial,
+      this.dye.fbo.write,
+    );
+
     this.dye.swap();
   }
 
-  /**
-   * Advances the simulation by one frame. External injection (cursor-driven
-   * splats) is expected to have already been applied via `splat()` — by
-   * ForceInjector — before this is called.
-   *
-   * Order matters here: forces are added, then vorticity confinement
-   * reinforces whatever rotation those forces created, then the field is
-   * projected (made divergence-free) BEFORE advection — not after. Advecting
-   * a non-divergence-free field carries compression artifacts forward and
-   * is what previously made injected motion look linear instead of
-   * swirling. This ordering matches the standard real-time stable-fluids
-   * pipeline (Stam; Fedkiw et al.'s vorticity confinement).
-   */
   step(deltaTime: number): void {
-    const dt = Math.min(deltaTime, 1 / 30); // clamp to keep the solver stable on frame hitches
+    const dt = Math.min(deltaTime, 1 / 30);
+
     this.elapsed += dt;
 
-    // 1. Ambient curl-noise force — the persistent, autonomous resting motion.
-    this.curlForceMaterial.uniforms.uVelocity.value = this.velocity.texture;
-    this.curlForceMaterial.uniforms.uTime.value = this.elapsed;
-    this.curlForceMaterial.uniforms.uDeltaTime.value = dt;
-    this.gpgpu.pass(this.curlForceMaterial, this.velocity.fbo.write);
+    /*
+     * 1. Very subtle ambient motion.
+     *
+     * This gives the material life while the user is not interacting,
+     * but is intentionally weak so it does not create a field full
+     * of independent vortices.
+     */
+    this.curlForceMaterial.uniforms.uVelocity.value =
+      this.velocity.texture;
+
+    this.curlForceMaterial.uniforms.uTime.value =
+      this.elapsed;
+
+    this.curlForceMaterial.uniforms.uDeltaTime.value =
+      dt;
+
+    this.gpgpu.pass(
+      this.curlForceMaterial,
+      this.velocity.fbo.write,
+    );
+
     this.velocity.swap();
 
-    // 2. Measure vorticity, then confine it — reinforce existing rotation
-    //    so injected energy rolls up into swirls instead of diffusing.
-    this.vorticityMaterial.uniforms.uVelocity.value = this.velocity.texture;
-    this.gpgpu.pass(this.vorticityMaterial, this.vorticityTarget);
+    /*
+     * 2. Measure and gently reinforce existing vorticity.
+     *
+     * The confinement shader itself performs the thresholding.
+     * Keeping the global strength low prevents the entire trail
+     * from becoming a collection of small rotating cells.
+     */
+    this.vorticityMaterial.uniforms.uVelocity.value =
+      this.velocity.texture;
 
-    this.confinementMaterial.uniforms.uVelocity.value = this.velocity.texture;
-    this.confinementMaterial.uniforms.uVorticity.value = this.vorticityTarget.texture;
-    this.confinementMaterial.uniforms.uDeltaTime.value = dt;
-    this.gpgpu.pass(this.confinementMaterial, this.velocity.fbo.write);
+    this.gpgpu.pass(
+      this.vorticityMaterial,
+      this.vorticityTarget,
+    );
+
+    this.confinementMaterial.uniforms.uVelocity.value =
+      this.velocity.texture;
+
+    this.confinementMaterial.uniforms.uVorticity.value =
+      this.vorticityTarget.texture;
+
+    this.confinementMaterial.uniforms.uDeltaTime.value =
+      dt;
+
+    this.gpgpu.pass(
+      this.confinementMaterial,
+      this.velocity.fbo.write,
+    );
+
     this.velocity.swap();
 
-    // 3. Pressure projection — enforce incompressibility so the field
-    //    swirls and conserves momentum instead of just diffusing.
-    this.divergenceMaterial.uniforms.uVelocity.value = this.velocity.texture;
-    this.gpgpu.pass(this.divergenceMaterial, this.divergenceTarget);
+    /*
+     * 3. Pressure projection.
+     *
+     * Unchanged physics pipeline.
+     */
+    this.divergenceMaterial.uniforms.uVelocity.value =
+      this.velocity.texture;
 
-    this.pressureMaterial.uniforms.uDivergence.value = this.divergenceTarget.texture;
-    for (let i = 0; i < this.config.pressureIterations; i++) {
-      this.pressureMaterial.uniforms.uPressure.value = this.pressure.fbo.texture;
-      this.gpgpu.pass(this.pressureMaterial, this.pressure.fbo.write);
+    this.gpgpu.pass(
+      this.divergenceMaterial,
+      this.divergenceTarget,
+    );
+
+    this.pressureMaterial.uniforms.uDivergence.value =
+      this.divergenceTarget.texture;
+
+    for (
+      let i = 0;
+      i < this.config.pressureIterations;
+      i++
+    ) {
+      this.pressureMaterial.uniforms.uPressure.value =
+        this.pressure.fbo.texture;
+
+      this.gpgpu.pass(
+        this.pressureMaterial,
+        this.pressure.fbo.write,
+      );
+
       this.pressure.fbo.swap();
     }
 
-    this.gradientSubtractMaterial.uniforms.uPressure.value = this.pressure.fbo.texture;
-    this.gradientSubtractMaterial.uniforms.uVelocity.value = this.velocity.texture;
-    this.gpgpu.pass(this.gradientSubtractMaterial, this.velocity.fbo.write);
+    this.gradientSubtractMaterial.uniforms.uPressure.value =
+      this.pressure.fbo.texture;
+
+    this.gradientSubtractMaterial.uniforms.uVelocity.value =
+      this.velocity.texture;
+
+    this.gpgpu.pass(
+      this.gradientSubtractMaterial,
+      this.velocity.fbo.write,
+    );
+
     this.velocity.swap();
 
-    // 4. NOW self-advect the divergence-free velocity (propagation) with
-    //    dissipation (settling).
-    this.advectMaterial.uniforms.uVelocity.value = this.velocity.texture;
-    this.advectMaterial.uniforms.uSource.value = this.velocity.texture;
-    this.advectMaterial.uniforms.uTexelSize.value = this.simTexelSize;
-    this.advectMaterial.uniforms.uDeltaTime.value = dt;
-    this.advectMaterial.uniforms.uDissipation.value = this.config.velocityDissipation;
-    this.gpgpu.pass(this.advectMaterial, this.velocity.fbo.write);
+    /*
+     * 4. Advect velocity.
+     */
+    this.advectMaterial.uniforms.uVelocity.value =
+      this.velocity.texture;
+
+    this.advectMaterial.uniforms.uSource.value =
+      this.velocity.texture;
+
+    this.advectMaterial.uniforms.uTexelSize.value =
+      this.simTexelSize;
+
+    this.advectMaterial.uniforms.uDeltaTime.value =
+      dt;
+
+    this.advectMaterial.uniforms.uDissipation.value =
+      this.config.velocityDissipation;
+
+    this.gpgpu.pass(
+      this.advectMaterial,
+      this.velocity.fbo.write,
+    );
+
     this.velocity.swap();
 
-    // 5. Advect dye through the same velocity field.
-    this.advectMaterial.uniforms.uVelocity.value = this.velocity.texture;
-    this.advectMaterial.uniforms.uSource.value = this.dye.texture;
-    this.advectMaterial.uniforms.uTexelSize.value = this.dyeTexelSize;
-    this.advectMaterial.uniforms.uDeltaTime.value = dt;
-    this.advectMaterial.uniforms.uDissipation.value = this.config.dyeDissipation;
-    this.gpgpu.pass(this.advectMaterial, this.dye.fbo.write);
+    /*
+     * 5. Advect dye through the same velocity field.
+     */
+    this.advectMaterial.uniforms.uVelocity.value =
+      this.velocity.texture;
+
+    this.advectMaterial.uniforms.uSource.value =
+      this.dye.texture;
+
+    this.advectMaterial.uniforms.uTexelSize.value =
+      this.dyeTexelSize;
+
+    this.advectMaterial.uniforms.uDeltaTime.value =
+      dt;
+
+    this.advectMaterial.uniforms.uDissipation.value =
+      this.config.dyeDissipation;
+
+    this.gpgpu.pass(
+      this.advectMaterial,
+      this.dye.fbo.write,
+    );
+
     this.dye.swap();
   }
 
   resize(width: number, height: number): void {
-    // Simulation runs at a fixed internal resolution independent of the
-    // canvas' pixel size, so resize only needs to track aspect ratio for
-    // splat positioning correctness — not reallocate buffers on every drag.
     this.aspect = width / height;
-    this.splatMaterial.uniforms.uAspect.value = this.aspect;
+
+    this.splatMaterial.uniforms.uAspect.value =
+      this.aspect;
   }
 
   dispose(): void {

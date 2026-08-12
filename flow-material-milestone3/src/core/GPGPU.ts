@@ -9,7 +9,9 @@ import * as THREE from 'three';
  * any future GPU field simulation, not just this one material.
  */
 
-/** A double-buffered render target: read from one, write into the other, then swap. */
+/**
+ * A double-buffered render target: read from one, write into the other, then swap.
+ */
 export class DoubleFBO {
   read: THREE.WebGLRenderTarget;
   write: THREE.WebGLRenderTarget;
@@ -56,7 +58,9 @@ export class GPGPU {
     this.passScene.add(this.quad);
   }
 
-  /** Best available float-capable texture type for this device. */
+  /**
+   * Best available float-capable texture type for this device.
+   */
   static preferredType(renderer: THREE.WebGLRenderer): THREE.TextureDataType {
     const gl = renderer.getContext();
     const supportsFloatLinear = gl.getExtension('OES_texture_float_linear');

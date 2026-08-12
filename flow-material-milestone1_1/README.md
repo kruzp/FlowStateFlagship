@@ -61,7 +61,7 @@ compiles and receives per-frame uniforms, not the real material.
   simulation-agnostic samples
 - `interaction/ForceInjector.ts` — the only bridge from input into
   `Simulation.splat()`; decides impulse strength, never touches rendering
-- `App.ts` rewired to orchestrate these layers plus a **temporary** debug
+- `App.ts` rewired to orchestrate these layers plus a temporary debug
   display shader — no physics or input logic lives in `App.ts` itself
 - Resting-state motion is continuous and autonomous (ambient curl-noise
   force runs every frame, cursor or not); cursor movement injects energy

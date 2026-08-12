@@ -19,20 +19,54 @@ uniform float uDeltaTime;
  * that isn't already present in the field; it amplifies what's there.
  */
 void main() {
-  float left = abs(texture2D(uVorticity, vUv - vec2(uTexelSize.x, 0.0)).x);
-  float right = abs(texture2D(uVorticity, vUv + vec2(uTexelSize.x, 0.0)).x);
-  float bottom = abs(texture2D(uVorticity, vUv - vec2(0.0, uTexelSize.y)).x);
-  float top = abs(texture2D(uVorticity, vUv + vec2(0.0, uTexelSize.y)).x);
-  float center = texture2D(uVorticity, vUv).x;
+    float left = abs(texture2D(
+        uVorticity,
+        vUv - vec2(uTexelSize.x, 0.0)
+    ).x);
 
-  vec2 gradient = 0.5 * vec2(right - left, top - bottom);
-  float gradientLength = max(length(gradient), 1e-5);
-  vec2 direction = gradient / gradientLength;
+    float right = abs(texture2D(
+        uVorticity,
+        vUv + vec2(uTexelSize.x, 0.0)
+    ).x);
 
-  vec2 force = uCurlStrength * center * vec2(direction.y, -direction.x);
+    float bottom = abs(texture2D(
+        uVorticity,
+        vUv - vec2(0.0, uTexelSize.y)
+    ).x);
 
-  vec2 velocity = texture2D(uVelocity, vUv).xy;
-  velocity += force * uDeltaTime;
+    float top = abs(texture2D(
+        uVorticity,
+        vUv + vec2(0.0, uTexelSize.y)
+    ).x);
 
-  gl_FragColor = vec4(velocity, 0.0, 1.0);
+    float center = texture2D(uVorticity, vUv).x;
+
+    vec2 gradient = 0.5 * vec2(
+        right - left,
+        top - bottom
+    );
+
+    float gradientLength = max(length(gradient), 1e-5);
+    vec2 direction = gradient / gradientLength;
+
+    // Ignore weak rotational noise.
+    float curlMagnitude = abs(center);
+
+    float curlMask = smoothstep(
+    0.06,
+    0.18,
+    curlMagnitude
+);
+
+    vec2 force =
+        uCurlStrength *
+        center *
+        curlMask *
+        vec2(direction.y, -direction.x);
+
+    vec2 velocity = texture2D(uVelocity, vUv).xy;
+
+    velocity += force * uDeltaTime;
+
+    gl_FragColor = vec4(velocity, 0.0, 1.0);
 }

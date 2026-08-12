@@ -7,7 +7,7 @@ export interface PointerSample {
   strength: number; // 0..1, derived from movement speed
 }
 
-/**
+/*
  * InputController's only job is DOM events -> normalized movement samples.
  * It knows nothing about velocity fields, dye, or splats — ForceInjector
  * is the translation layer that turns these samples into physical impulses.
