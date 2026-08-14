@@ -37,13 +37,13 @@ export interface SimulationConfig {
 export const DEFAULT_SIMULATION_CONFIG: SimulationConfig = {
   simResolution: 128,
   dyeResolution: 512,
-  velocityDissipation: 0.45,
-  dyeDissipation: 0.85,
+  velocityDissipation: 0.25,
+  dyeDissipation: 0.92,
   ambientStrength: 0.0,
   ambientScale: 3.0,
   pressureIterations: 16,
-  splatRadius: 0.003,
-  curlStrength: 0,
+  splatRadius: 0.0022,
+  curlStrength: 4,
 };
 
 /** A single injected impulse — the only way the outside world touches the field. */

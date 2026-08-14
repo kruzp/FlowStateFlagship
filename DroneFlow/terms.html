@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Terms of Service — Flowstate</title>
+<meta name="description" content="Flowstate Terms of Service: deliverables by package, data ownership, scheduling, cancellation and minimum terms, accuracy limitations, and liability." />
+<link rel="canonical" href="https://flowstate.com/terms.html" />
+<meta name="theme-color" content="#05070a" />
+<meta name="robots" content="index,follow" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Terms of Service — Flowstate" />
+<meta property="og:url" content="https://flowstate.com/terms.html" />
+<meta property="og:image" content="https://flowstate.com/og-image.png" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<style>/* ================= Flowstate visual system — shared by every page ================= */
+:root{
+  --bg:#05070a;
+  --bg-raise:#0a0e13;
+  --line:rgba(126,158,178,.13);
+  --line-strong:rgba(126,158,178,.24);
+  --ink:#e8eef4;
+  --ink-2:#9aabb8;
+  --ink-3:#7c8b98;
+  --signal:#4fb8d8;
+  --signal-dim:rgba(79,184,216,.16);
+  --amber:#e8a24a;
+  --font-sans:"Inter","Helvetica Neue",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  --font-mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --pad:clamp(20px,4.2vw,64px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:var(--font-sans);font-size:16px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+.substrate{position:fixed;inset:0;pointer-events:none;z-index:0}
+.substrate::before{
+  content:"";position:absolute;inset:-2px;
+  background-image:
+    linear-gradient(to right,rgba(126,158,178,.055) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(126,158,178,.055) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse 120% 80% at 60% 30%,#000 0%,transparent 78%);
+  -webkit-mask-image:radial-gradient(ellipse 120% 80% at 60% 30%,#000 0%,transparent 78%);
+}
+.substrate::after{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 55% at 72% 34%,rgba(79,184,216,.075),transparent 70%);
+}
+.wrap{position:relative;z-index:1;max-width:1360px;margin:0 auto;padding:0 var(--pad)}
+
+/* ---- utility ---- */
+.mono{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+:focus-visible{outline:2px solid var(--signal);outline-offset:3px;border-radius:2px}
+.skip{position:absolute;left:-9999px;top:8px;z-index:20;background:var(--signal);color:#04161d;padding:10px 16px;border-radius:2px;font-size:14px;font-weight:560}
+.skip:focus{left:var(--pad)}
+/* unfilled placeholder — swap the value and delete the class */
+.ph{color:var(--amber);border-bottom:1px dotted rgba(232,162,74,.6);text-decoration:none}
+
+/* ---- header ---- */
+header{position:relative;z-index:3;border-bottom:1px solid var(--line)}
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:24px;height:66px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--ink)}
+.brand svg{display:block;flex:none}
+.brand b{font-size:14.5px;font-weight:600;letter-spacing:.19em;text-transform:uppercase}
+nav.main{display:flex;gap:30px}
+nav.main a{color:var(--ink-2);text-decoration:none;font-size:13.5px;letter-spacing:.01em;transition:color .25s}
+nav.main a:hover{color:var(--ink)}
+
+/* ---- buttons ---- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:40px;padding:9px 18px;
+  border:1px solid var(--line-strong);border-radius:2px;background:transparent;
+  color:var(--ink);font:inherit;font-size:13.5px;letter-spacing:.02em;
+  text-decoration:none;cursor:pointer;transition:border-color .25s,background .25s,color .25s;
+}
+.btn:hover{border-color:rgba(79,184,216,.6);background:rgba(79,184,216,.07)}
+.btn--primary{background:var(--signal);border-color:var(--signal);color:#04161d;font-weight:560}
+.btn--primary:hover{background:#69c9e4;border-color:#69c9e4}
+.btn .tick{width:5px;height:5px;background:currentColor;opacity:.7;flex:none}
+
+/* ---- headings ---- */
+h1{margin:0 0 22px;font-size:clamp(38px,5.4vw,66px);line-height:1.03;letter-spacing:-.031em;font-weight:600}
+h1 .thin{color:var(--ink-2);font-weight:300}
+h2{margin:14px 0 14px;font-size:clamp(28px,3.4vw,42px);line-height:1.1;letter-spacing:-.024em;font-weight:600}
+.sec-head{text-align:center;max-width:660px;margin:0 auto clamp(28px,4vw,52px)}
+.sec-head p{margin:0;color:var(--ink-2);font-size:15.5px;line-height:1.62}
+section{border-top:1px solid var(--line)}
+
+/* ---- footer ---- */
+footer{border-top:1px solid var(--line);padding:44px 0 40px;color:var(--ink-3);font-size:13px;position:relative;z-index:1}
+.foot-grid{display:grid;grid-template-columns:1.6fr repeat(3,1fr);gap:28px}
+.foot-grid h3{margin:0 0 14px;font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:400}
+.foot-grid ul{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.foot-grid a{color:var(--ink-2);text-decoration:none;transition:color .25s}
+.foot-grid a:hover{color:var(--signal)}
+.foot-brand p{margin:14px 0 0;max-width:34ch;line-height:1.6}
+.foot-bottom{margin-top:38px;padding-top:20px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px 26px;justify-content:space-between;font-size:12px}
+.foot-note{max-width:78ch;margin-top:14px;font-size:11.5px;line-height:1.6;color:var(--ink-3)}
+
+@media (max-width:900px){
+  nav.main{display:none}
+  .foot-grid{grid-template-columns:1fr 1fr;gap:30px 22px}
+  .foot-brand{grid-column:1/-1}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
+/* ================= legal pages ================= */
+.doc{max-width:760px;margin:0 auto;padding:clamp(44px,6vw,80px) 0 clamp(56px,6vw,88px)}
+.doc__head{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:12px}
+.doc__head h1{font-size:clamp(30px,4.2vw,46px);margin-bottom:14px}
+.doc__meta{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--font-mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3)}
+.doc__intro{margin:26px 0 0;font-size:16px;line-height:1.7;color:var(--ink-2)}
+.doc__intro strong{color:var(--ink);font-weight:500}
+
+.toc{margin:34px 0 0;padding:20px 22px;border:1px solid var(--line);border-radius:3px;background:rgba(10,14,19,.5)}
+.toc h2{margin:0 0 14px;font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:400}
+.toc ol{margin:0;padding:0;list-style:none;counter-reset:toc;columns:2;column-gap:26px}
+.toc li{counter-increment:toc;margin-bottom:8px;break-inside:avoid;font-size:13.5px}
+.toc a{color:var(--ink-2);text-decoration:none;display:flex;gap:9px}
+.toc a::before{content:counter(toc,decimal-leading-zero);font-family:var(--font-mono);font-size:10px;color:var(--ink-3);padding-top:3px}
+.toc a:hover{color:var(--signal)}
+
+.doc section{border-top:0;margin-top:40px;scroll-margin-top:84px}
+.doc section h2{
+  font-size:19px;font-weight:600;letter-spacing:-.008em;margin:0 0 14px;
+  padding-bottom:12px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:12px;
+}
+.doc section h2 .num{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--signal);flex:none}
+.doc h3{font-size:15px;font-weight:560;margin:24px 0 10px;color:var(--ink)}
+.doc p{margin:0 0 14px;font-size:15px;line-height:1.72;color:var(--ink-2)}
+.doc p strong,.doc li strong{color:var(--ink);font-weight:560}
+.doc ul{margin:0 0 16px;padding:0;list-style:none;display:grid;gap:10px}
+.doc ul li{position:relative;padding-left:20px;font-size:15px;line-height:1.65;color:var(--ink-2)}
+.doc ul li::before{content:"";position:absolute;left:2px;top:9px;width:5px;height:5px;background:var(--signal);opacity:.6}
+.doc a{color:var(--signal)}
+.doc .callout-box{
+  margin:20px 0;padding:18px 20px;border:1px solid rgba(232,162,74,.34);
+  background:rgba(232,162,74,.05);border-radius:3px;
+}
+.doc .callout-box p{color:#e5cfb0;margin-bottom:0;font-size:14.5px}
+.doc .callout-box p + p{margin-top:11px}
+.doc .callout-box strong{color:#f5d9ae}
+.doc dl{margin:0 0 16px;display:grid;gap:14px}
+.doc dt{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--signal)}
+.doc dd{margin:6px 0 0;font-size:15px;line-height:1.68;color:var(--ink-2)}
+.doc__foot{margin-top:44px;padding-top:22px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-3);line-height:1.65}
+
+@media (max-width:700px){ .toc ol{columns:1} }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="substrate" aria-hidden="true"></div>
+<header>
+  <div class="wrap hdr">
+    <a class="brand" href="index.html#top">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="17" height="17" stroke="#4fb8d8" stroke-opacity=".55"/>
+        <path d="M10 4.4v3.1M10 12.5v3.1M4.4 10h3.1M12.5 10h3.1" stroke="#4fb8d8" stroke-width="1.1"/>
+        <circle cx="10" cy="10" r="2.6" stroke="#e8eef4" stroke-width="1.1"/>
+      </svg>
+      <b>Flowstate</b>
+    </a>
+    <nav class="main" aria-label="Primary">
+      <a href="index.html#pipeline">How it works</a>
+      <a href="index.html#packages">Packages</a>
+      <a href="index.html#trust">Part 107</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+    <a class="btn btn--primary" href="index.html#contact"><span class="tick" aria-hidden="true"></span><span class="lbl">Book a capture</span></a>
+  </div>
+</header>
+
+
+<main id="main" class="wrap">
+  <article class="doc">
+    <div class="doc__head">
+      <p class="mono">Legal</p>
+      <h1>Terms of Service</h1>
+      <p class="doc__meta">
+        <span>Effective <span class="ph">[DATE]</span></span>
+        <span>Last updated <span class="ph">[DATE]</span></span>
+        <span>Version 1.0</span>
+      </p>
+    </div>
+
+    <p class="doc__intro">These Terms govern aerial capture, processing and reporting services provided by <strong>Flowstate</strong> (<span class="ph">[LEGAL ENTITY NAME]</span>, "Flowstate", "we", "us") to a client ("Client", "you"). By booking a capture, signing a proposal, or paying an invoice, you agree to these Terms. Where a signed proposal or master services agreement conflicts with these Terms, that document controls.</p>
+
+    <nav class="toc" aria-label="Contents">
+      <h2>Contents</h2>
+      <ol>
+        <li><a href="#s1">Services and deliverables</a></li>
+        <li><a href="#s2">Scheduling, weather and airspace</a></li>
+        <li><a href="#s3">Client responsibilities</a></li>
+        <li><a href="#s4">Ownership of imagery and data</a></li>
+        <li><a href="#s5">Report links and access</a></li>
+        <li><a href="#s6">Fees, minimum terms and cancellation</a></li>
+        <li><a href="#s7">Accuracy and intended use</a></li>
+        <li><a href="#s8">Confidentiality</a></li>
+        <li><a href="#s9">Regulatory compliance</a></li>
+        <li><a href="#s10">Disclaimer of warranties</a></li>
+        <li><a href="#s11">Limitation of liability</a></li>
+        <li><a href="#s12">Indemnification</a></li>
+        <li><a href="#s13">Suspension and termination</a></li>
+        <li><a href="#s14">Governing law and disputes</a></li>
+        <li><a href="#s15">Changes to these Terms</a></li>
+        <li><a href="#s16">Contact</a></li>
+      </ol>
+    </nav>
+
+    <section id="s1">
+      <h2><span class="num">01</span>Services and deliverables</h2>
+      <p>Flowstate provides aerial imagery capture by small unmanned aircraft, photogrammetric processing of that imagery, and delivery of hosted web reports. What is included depends on the package purchased.</p>
+      <dl>
+        <dt>Flight Report — one-time</dt>
+        <dd>One capture flight of the agreed site area, one processed orthomosaic, one hosted report link, and a PDF export. Delivered within two business days of a completed flight unless otherwise agreed.</dd>
+        <dt>Draw Ready — recurring, three-month minimum</dt>
+        <dd>Recurring capture flights at the agreed cadence (monthly or biweekly), each producing an orthomosaic and updating a hosted progress timeline; volumetric measurements where site conditions permit; unlimited sharing of the report link.</dd>
+        <dt>Site Intelligence — recurring, three-site minimum</dt>
+        <dd>Draw Ready services applied to three or more sites, plus a consolidated portfolio view across those sites and priority scheduling.</dd>
+      </dl>
+      <p>Volumetric measurement (cut/fill, stockpile) depends on terrain, vegetation, ground visibility and the availability of suitable reference surfaces. It is provided <strong>where site conditions permit</strong> and is not guaranteed on every capture or every site.</p>
+      <p>Services not described above — including boundary surveys, ALTA/NSPS surveys, construction staking, design deliverables, thermal or LiDAR capture, indoor capture, and any operation requiring an FAA waiver we do not hold — are outside the scope of these Terms.</p>
+    </section>
+
+    <section id="s2">
+      <h2><span class="num">02</span>Scheduling, weather and airspace</h2>
+      <p>Flights are scheduled in advance and are subject to weather, wind, visibility, daylight, airspace availability and site conditions. Flowstate will not fly when conditions would make the flight unsafe, unlawful, or would produce unusable imagery, and is the sole judge of that determination.</p>
+      <p>Where a scheduled flight cannot proceed, we will reschedule to the next suitable window at no additional charge. Recurring-plan captures missed for weather or airspace reasons are rescheduled within the same billing period where possible; where that is not possible, the capture carries into the following period. Weather and airspace delays are not grounds for a refund or a fee reduction.</p>
+      <p>If a flight is prevented by a Client-side cause — site inaccessible, no safe launch point, access denied on arrival, or cancellation with less than 24 hours' notice — Flowstate may charge a mobilization fee equal to fifty percent of the capture fee.</p>
+    </section>
+
+    <section id="s3">
+      <h2><span class="num">03</span>Client responsibilities</h2>
+      <p>You agree to:</p>
+      <ul>
+        <li><strong>Confirm authority.</strong> You represent that you have the right to authorize aerial capture of the site, or have obtained that authorization from the property owner or controlling party.</li>
+        <li><strong>Provide access.</strong> Site access and a safe launch and recovery area on the scheduled date.</li>
+        <li><strong>Disclose hazards.</strong> Known hazards, restricted areas, overhead obstructions, active lifts, blasting schedules, and any areas that must not be captured.</li>
+        <li><strong>Coordinate personnel.</strong> Notify site personnel of the flight window. Flowstate does not fly directly over people, and unannounced crew movement may cut a capture short.</li>
+        <li><strong>Review deliverables.</strong> Report any defect in a delivered report within ten business days so we can re-process or re-fly as appropriate.</li>
+      </ul>
+    </section>
+
+    <section id="s4">
+      <h2><span class="num">04</span>Ownership of imagery and data</h2>
+      <p><strong>You own the imagery and the products derived from it.</strong> On payment of the applicable fees, all right, title and interest in the captured imagery, orthomosaics, point clouds, elevation models, measurements and report content for your site vests in you.</p>
+      <p>You grant Flowstate a non-exclusive, worldwide licence to store, process, reproduce, adapt and transmit that material solely as needed to produce, host, deliver, support and re-process your reports for the duration of the engagement and the retention period described below.</p>
+      <p>Flowstate will not publish, display or use your site imagery in marketing, portfolio, case studies or social media <strong>without your prior written permission</strong>. Permission may be given or withheld for any reason and may be withdrawn on written notice, after which we will remove the material from materials we control going forward.</p>
+      <p>Flowstate retains all right, title and interest in its own tools, processing pipeline, software, report templates, and any general knowledge, methods and improvements developed in the course of providing the services. Nothing in these Terms transfers those to you.</p>
+      <p><strong>Retention.</strong> Raw captures and intermediate processing files are retained for 24 months from capture so reports can be rebuilt or re-processed, then deleted. Delivered reports remain hosted for the duration of the engagement and for 12 months after it ends. You may request earlier deletion in writing at any time; we will confirm deletion within 30 days, subject to any records we are required to keep.</p>
+    </section>
+
+    <section id="s5">
+      <h2><span class="num">05</span>Report links and access</h2>
+      <p>Reports are delivered as hosted links that do not require a login. Access control is by possession of the link: the link is long and randomly generated so it cannot be guessed, and reports are excluded from search engine indexing, but <strong>anyone who has the link can view the report</strong>.</p>
+      <p>You are responsible for who you share a report link with and for onward sharing by those recipients. Treat a report link the way you would treat a confidential document. You may request revocation of any link at any time and we will disable it promptly.</p>
+      <p>Flowstate aims for continuous availability of hosted reports but does not commit to a specific uptime percentage and is not liable for interruptions caused by hosting providers, network failures or events outside our reasonable control.</p>
+    </section>
+
+    <section id="s6">
+      <h2><span class="num">06</span>Fees, minimum terms and cancellation</h2>
+      <p>Prices published on our site are starting prices. The applicable fee for your site is the one stated in your accepted proposal or invoice. Fees are exclusive of any applicable sales or use tax, which will be added where required.</p>
+      <h3>One-time captures</h3>
+      <p>Flight Report fees are invoiced on delivery of the report and payable within 15 days unless otherwise agreed.</p>
+      <h3>Recurring plans and minimum terms</h3>
+      <ul>
+        <li><strong>Draw Ready</strong> carries a <strong>three-month minimum term</strong>, billed monthly in advance beginning on the date of the first capture.</li>
+        <li><strong>Site Intelligence</strong> carries a <strong>three-site minimum</strong>, billed monthly in advance per site. Dropping below three sites moves the remaining sites to Draw Ready pricing at the next billing date.</li>
+        <li>After the minimum term, plans continue <strong>month to month</strong> and may be cancelled by either party on <strong>30 days' written notice</strong>. Cancellation takes effect at the end of the notice period; captures already scheduled inside that period will be flown and billed.</li>
+        <li>If you cancel <strong>during</strong> a minimum term, the remaining months of that minimum become immediately due. Flowstate may, at its discretion, waive the balance where the cancellation is caused by a project stopping through no fault of yours.</li>
+      </ul>
+      <h3>Refunds</h3>
+      <p>Completed captures and delivered reports are not refundable. Where a capture is unusable because of an error on our side, we will re-fly at no charge; where a re-fly is not practical, we will credit or refund that capture. Prepaid fees for captures not yet flown at the end of a cancelled engagement are refunded.</p>
+      <p>Overdue amounts may accrue interest at 1.5% per month or the maximum permitted by law, whichever is lower. Flowstate may suspend scheduled captures and hosted report access while an account is more than 30 days overdue.</p>
+    </section>
+
+    <section id="s7">
+      <h2><span class="num">07</span>Accuracy and intended use</h2>
+      <div class="callout-box">
+        <p><strong>Flowstate deliverables are not a land survey.</strong> Orthomosaics, elevation models, measurements and volume figures are photogrammetric estimates produced for construction progress documentation and reporting. They are not prepared by, or under the supervision of, a licensed land surveyor or professional engineer.</p>
+        <p>They must not be used for boundary determination, easement or encroachment analysis, legal descriptions, design of record, construction staking, or any purpose for which a survey by a licensed professional is required by law, contract, or lender requirement.</p>
+      </div>
+      <p>Stated accuracies, including RTK-derived positioning, describe the capability of the equipment under favourable conditions. Achieved accuracy on any given capture depends on satellite conditions, correction availability, terrain, vegetation, ground control, weather and site obstructions, and may be lower.</p>
+      <p><strong>You are responsible for verifying any quantity, measurement or percentage-of-completion figure before relying on it</strong> — including in a payment application, draw request, change order, or any submission to a lender, owner, surety or public body. Flowstate reports are supporting documentation. They are not a certification of completion or of quantities in place.</p>
+    </section>
+
+    <section id="s8">
+      <h2><span class="num">08</span>Confidentiality</h2>
+      <p>Each party will keep the other's non-public information confidential and use it only for the purposes of the engagement. Flowstate treats site imagery, site layouts, schedules and project details as your confidential information, and will not disclose them to third parties except to subprocessors who need access to deliver the services and who are bound by confidentiality obligations, or where disclosure is required by law.</p>
+      <p>Where a project is subject to a separate non-disclosure agreement or site security requirements, tell us before the first capture so we can accommodate them.</p>
+    </section>
+
+    <section id="s9">
+      <h2><span class="num">09</span>Regulatory compliance</h2>
+      <p>Flowstate operates under 14 CFR Part 107 as a certificated Remote Pilot and will conduct all flights in accordance with Part 107 and applicable state and local law, including obtaining controlled-airspace authorization where required. We do not conduct operations requiring waivers we do not hold, including beyond visual line of sight and operations over people.</p>
+      <p>If a site cannot be captured lawfully — for example because airspace authorization is denied, or a local ordinance prohibits the operation — we will tell you, and any prepaid fee for that capture will be refunded.</p>
+    </section>
+
+    <section id="s10">
+      <h2><span class="num">10</span>Disclaimer of warranties</h2>
+      <p>Except as expressly stated in these Terms, the services and deliverables are provided <strong>"as is"</strong> and Flowstate disclaims all other warranties, express or implied, including implied warranties of merchantability, fitness for a particular purpose, and non-infringement. Flowstate does not warrant that imagery will be free of gaps or artefacts, that any particular feature will be resolvable, or that reports will be uninterrupted or error-free.</p>
+    </section>
+
+    <section id="s11">
+      <h2><span class="num">11</span>Limitation of liability</h2>
+      <p>To the maximum extent permitted by law:</p>
+      <ul>
+        <li>Neither party is liable for indirect, incidental, special, consequential, exemplary or punitive damages, or for lost profits, lost revenue, delay damages, liquidated damages, loss of use, or cost of substitute services, whether in contract, tort or otherwise, even if advised of the possibility.</li>
+        <li><strong>Flowstate's total aggregate liability</strong> arising out of or relating to the services, from all causes combined, is limited to <strong>the fees paid by you to Flowstate in the three months preceding the event giving rise to the claim</strong>.</li>
+        <li>Nothing in these Terms limits liability for death or personal injury caused by negligence, for fraud, or for any liability that cannot lawfully be limited.</li>
+      </ul>
+      <p>You acknowledge that the fees charged reflect this allocation of risk, and that Flowstate would not provide the services on these prices without it.</p>
+    </section>
+
+    <section id="s12">
+      <h2><span class="num">12</span>Indemnification</h2>
+      <p>You will indemnify and hold harmless Flowstate against claims, damages and reasonable costs arising from: your breach of these Terms; your lack of authority to permit aerial capture of a site; conditions at the site that you knew of and did not disclose; and your use of, or reliance on, deliverables for a purpose excluded under Section 07.</p>
+      <p>Flowstate will indemnify and hold you harmless against claims arising from our violation of applicable aviation regulations in performing a flight, and from our infringement of a third party's intellectual property rights in the tools we use to deliver the services.</p>
+    </section>
+
+    <section id="s13">
+      <h2><span class="num">13</span>Suspension and termination</h2>
+      <p>Either party may terminate for material breach if the breach is not cured within 15 days of written notice. Flowstate may suspend services immediately where continuing would be unsafe or unlawful, or where an account is materially overdue.</p>
+      <p>On termination, you remain liable for captures already performed and for any unexpired minimum term under Section 06. Sections 04, 07, 08, 10, 11, 12 and 14 survive termination.</p>
+    </section>
+
+    <section id="s14">
+      <h2><span class="num">14</span>Governing law and disputes</h2>
+      <p>These Terms are governed by the laws of the State of <span class="ph">[STATE]</span>, without regard to its conflict of law rules. The parties submit to the exclusive jurisdiction of the state and federal courts located in <span class="ph">[COUNTY, STATE]</span>.</p>
+      <p>Before filing, the parties will attempt in good faith to resolve any dispute through direct discussion for at least 30 days after written notice of the dispute.</p>
+    </section>
+
+    <section id="s15">
+      <h2><span class="num">15</span>Changes to these Terms</h2>
+      <p>Flowstate may update these Terms. The version in effect when you booked a capture governs that capture. For recurring plans, we will give at least 30 days' notice of a material change before it applies to your next billing period; if you do not accept it, you may cancel effective at the end of the current period without incurring the remainder of a minimum term.</p>
+    </section>
+
+    <section id="s16">
+      <h2><span class="num">16</span>Contact</h2>
+      <p>Questions about these Terms:</p>
+      <p><span class="ph">[LEGAL ENTITY NAME]</span> d/b/a Flowstate<br/>
+      <a class="ph" href="mailto:hello@flowstate.com">hello@flowstate.com</a><br/>
+      <span class="ph">(000) 000-0000</span><br/>
+      <span class="ph">[BUSINESS MAILING ADDRESS]</span></p>
+    </section>
+
+    <p class="doc__foot">Highlighted values are placeholders and must be completed before this page goes live. These Terms are a starting draft prepared for a specific business model — they are not legal advice, and should be reviewed by an attorney licensed in your state before you sign a client contract.</p>
+  </article>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="index.html#top">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <rect x="1.5" y="1.5" width="17" height="17" stroke="#4fb8d8" stroke-opacity=".55"/>
+            <path d="M10 4.4v3.1M10 12.5v3.1M4.4 10h3.1M12.5 10h3.1" stroke="#4fb8d8" stroke-width="1.1"/>
+            <circle cx="10" cy="10" r="2.6" stroke="#e8eef4" stroke-width="1.1"/>
+          </svg>
+          <b>Flowstate</b>
+        </a>
+        <p>Drone site documentation for contractors who were priced out of the enterprise platforms.</p>
+      </div>
+      <div>
+        <h3>Product</h3>
+        <ul>
+          <li><a href="index.html#pipeline">How it works</a></li>
+          <li><a href="index.html#packages">Packages</a></li>
+          <li><a href="index.html#trust">Compliance</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Legal</h3>
+        <ul>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Contact</h3>
+        <ul>
+          <li><a class="ph" href="mailto:hello@flowstate.com">hello@flowstate.com</a></li>
+          <li><a class="ph" href="tel:+10000000000">(000) 000-0000</a></li>
+          <li><a href="index.html#contact">Book a capture</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© <span id="year">2026</span> Flowstate. All rights reserved.</span>
+      <span>FAA Part 107 certificated remote pilot · <span class="ph">Service area</span></span>
+    </div>
+    <p class="foot-note">Measurements and volume figures in Flowstate reports are photogrammetric estimates for progress tracking. They are not a boundary or land survey and are not prepared by a licensed land surveyor.</p>
+  </div>
+</footer>
+
+<script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+</body>
+</html>

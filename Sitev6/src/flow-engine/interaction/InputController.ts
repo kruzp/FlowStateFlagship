@@ -72,7 +72,9 @@ export class InputController {
         1
       );
 
-      if (strength > 0.0005) {
+      // Ignore tiny pointer drift and browser noise so no motion appears
+      // unless the user is meaningfully interacting with the hero.
+      if (strength > 0.01) {
         this.queue.push({
           x,
           y,

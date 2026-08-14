@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Privacy Policy — Flowstate</title>
+<meta name="description" content="How Flowstate collects, uses, stores and deletes personal information and construction site imagery, and the choices available to you." />
+<link rel="canonical" href="https://flowstate.com/privacy.html" />
+<meta name="theme-color" content="#05070a" />
+<meta name="robots" content="index,follow" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Privacy Policy — Flowstate" />
+<meta property="og:url" content="https://flowstate.com/privacy.html" />
+<meta property="og:image" content="https://flowstate.com/og-image.png" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<style>/* ================= Flowstate visual system — shared by every page ================= */
+:root{
+  --bg:#05070a;
+  --bg-raise:#0a0e13;
+  --line:rgba(126,158,178,.13);
+  --line-strong:rgba(126,158,178,.24);
+  --ink:#e8eef4;
+  --ink-2:#9aabb8;
+  --ink-3:#7c8b98;
+  --signal:#4fb8d8;
+  --signal-dim:rgba(79,184,216,.16);
+  --amber:#e8a24a;
+  --font-sans:"Inter","Helvetica Neue",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  --font-mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --pad:clamp(20px,4.2vw,64px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:var(--font-sans);font-size:16px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+.substrate{position:fixed;inset:0;pointer-events:none;z-index:0}
+.substrate::before{
+  content:"";position:absolute;inset:-2px;
+  background-image:
+    linear-gradient(to right,rgba(126,158,178,.055) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(126,158,178,.055) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse 120% 80% at 60% 30%,#000 0%,transparent 78%);
+  -webkit-mask-image:radial-gradient(ellipse 120% 80% at 60% 30%,#000 0%,transparent 78%);
+}
+.substrate::after{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 55% at 72% 34%,rgba(79,184,216,.075),transparent 70%);
+}
+.wrap{position:relative;z-index:1;max-width:1360px;margin:0 auto;padding:0 var(--pad)}
+
+/* ---- utility ---- */
+.mono{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+:focus-visible{outline:2px solid var(--signal);outline-offset:3px;border-radius:2px}
+.skip{position:absolute;left:-9999px;top:8px;z-index:20;background:var(--signal);color:#04161d;padding:10px 16px;border-radius:2px;font-size:14px;font-weight:560}
+.skip:focus{left:var(--pad)}
+/* unfilled placeholder — swap the value and delete the class */
+.ph{color:var(--amber);border-bottom:1px dotted rgba(232,162,74,.6);text-decoration:none}
+
+/* ---- header ---- */
+header{position:relative;z-index:3;border-bottom:1px solid var(--line)}
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:24px;height:66px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--ink)}
+.brand svg{display:block;flex:none}
+.brand b{font-size:14.5px;font-weight:600;letter-spacing:.19em;text-transform:uppercase}
+nav.main{display:flex;gap:30px}
+nav.main a{color:var(--ink-2);text-decoration:none;font-size:13.5px;letter-spacing:.01em;transition:color .25s}
+nav.main a:hover{color:var(--ink)}
+
+/* ---- buttons ---- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:40px;padding:9px 18px;
+  border:1px solid var(--line-strong);border-radius:2px;background:transparent;
+  color:var(--ink);font:inherit;font-size:13.5px;letter-spacing:.02em;
+  text-decoration:none;cursor:pointer;transition:border-color .25s,background .25s,color .25s;
+}
+.btn:hover{border-color:rgba(79,184,216,.6);background:rgba(79,184,216,.07)}
+.btn--primary{background:var(--signal);border-color:var(--signal);color:#04161d;font-weight:560}
+.btn--primary:hover{background:#69c9e4;border-color:#69c9e4}
+.btn .tick{width:5px;height:5px;background:currentColor;opacity:.7;flex:none}
+
+/* ---- headings ---- */
+h1{margin:0 0 22px;font-size:clamp(38px,5.4vw,66px);line-height:1.03;letter-spacing:-.031em;font-weight:600}
+h1 .thin{color:var(--ink-2);font-weight:300}
+h2{margin:14px 0 14px;font-size:clamp(28px,3.4vw,42px);line-height:1.1;letter-spacing:-.024em;font-weight:600}
+.sec-head{text-align:center;max-width:660px;margin:0 auto clamp(28px,4vw,52px)}
+.sec-head p{margin:0;color:var(--ink-2);font-size:15.5px;line-height:1.62}
+section{border-top:1px solid var(--line)}
+
+/* ---- footer ---- */
+footer{border-top:1px solid var(--line);padding:44px 0 40px;color:var(--ink-3);font-size:13px;position:relative;z-index:1}
+.foot-grid{display:grid;grid-template-columns:1.6fr repeat(3,1fr);gap:28px}
+.foot-grid h3{margin:0 0 14px;font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:400}
+.foot-grid ul{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.foot-grid a{color:var(--ink-2);text-decoration:none;transition:color .25s}
+.foot-grid a:hover{color:var(--signal)}
+.foot-brand p{margin:14px 0 0;max-width:34ch;line-height:1.6}
+.foot-bottom{margin-top:38px;padding-top:20px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px 26px;justify-content:space-between;font-size:12px}
+.foot-note{max-width:78ch;margin-top:14px;font-size:11.5px;line-height:1.6;color:var(--ink-3)}
+
+@media (max-width:900px){
+  nav.main{display:none}
+  .foot-grid{grid-template-columns:1fr 1fr;gap:30px 22px}
+  .foot-brand{grid-column:1/-1}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
+/* ================= legal pages ================= */
+.doc{max-width:760px;margin:0 auto;padding:clamp(44px,6vw,80px) 0 clamp(56px,6vw,88px)}
+.doc__head{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:12px}
+.doc__head h1{font-size:clamp(30px,4.2vw,46px);margin-bottom:14px}
+.doc__meta{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--font-mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3)}
+.doc__intro{margin:26px 0 0;font-size:16px;line-height:1.7;color:var(--ink-2)}
+.doc__intro strong{color:var(--ink);font-weight:500}
+
+.toc{margin:34px 0 0;padding:20px 22px;border:1px solid var(--line);border-radius:3px;background:rgba(10,14,19,.5)}
+.toc h2{margin:0 0 14px;font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:400}
+.toc ol{margin:0;padding:0;list-style:none;counter-reset:toc;columns:2;column-gap:26px}
+.toc li{counter-increment:toc;margin-bottom:8px;break-inside:avoid;font-size:13.5px}
+.toc a{color:var(--ink-2);text-decoration:none;display:flex;gap:9px}
+.toc a::before{content:counter(toc,decimal-leading-zero);font-family:var(--font-mono);font-size:10px;color:var(--ink-3);padding-top:3px}
+.toc a:hover{color:var(--signal)}
+
+.doc section{border-top:0;margin-top:40px;scroll-margin-top:84px}
+.doc section h2{
+  font-size:19px;font-weight:600;letter-spacing:-.008em;margin:0 0 14px;
+  padding-bottom:12px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:12px;
+}
+.doc section h2 .num{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--signal);flex:none}
+.doc h3{font-size:15px;font-weight:560;margin:24px 0 10px;color:var(--ink)}
+.doc p{margin:0 0 14px;font-size:15px;line-height:1.72;color:var(--ink-2)}
+.doc p strong,.doc li strong{color:var(--ink);font-weight:560}
+.doc ul{margin:0 0 16px;padding:0;list-style:none;display:grid;gap:10px}
+.doc ul li{position:relative;padding-left:20px;font-size:15px;line-height:1.65;color:var(--ink-2)}
+.doc ul li::before{content:"";position:absolute;left:2px;top:9px;width:5px;height:5px;background:var(--signal);opacity:.6}
+.doc a{color:var(--signal)}
+.doc .callout-box{
+  margin:20px 0;padding:18px 20px;border:1px solid rgba(232,162,74,.34);
+  background:rgba(232,162,74,.05);border-radius:3px;
+}
+.doc .callout-box p{color:#e5cfb0;margin-bottom:0;font-size:14.5px}
+.doc .callout-box p + p{margin-top:11px}
+.doc .callout-box strong{color:#f5d9ae}
+.doc dl{margin:0 0 16px;display:grid;gap:14px}
+.doc dt{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--signal)}
+.doc dd{margin:6px 0 0;font-size:15px;line-height:1.68;color:var(--ink-2)}
+.doc__foot{margin-top:44px;padding-top:22px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-3);line-height:1.65}
+
+@media (max-width:700px){ .toc ol{columns:1} }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="substrate" aria-hidden="true"></div>
+<header>
+  <div class="wrap hdr">
+    <a class="brand" href="index.html#top">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="17" height="17" stroke="#4fb8d8" stroke-opacity=".55"/>
+        <path d="M10 4.4v3.1M10 12.5v3.1M4.4 10h3.1M12.5 10h3.1" stroke="#4fb8d8" stroke-width="1.1"/>
+        <circle cx="10" cy="10" r="2.6" stroke="#e8eef4" stroke-width="1.1"/>
+      </svg>
+      <b>Flowstate</b>
+    </a>
+    <nav class="main" aria-label="Primary">
+      <a href="index.html#pipeline">How it works</a>
+      <a href="index.html#packages">Packages</a>
+      <a href="index.html#trust">Part 107</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+    <a class="btn btn--primary" href="index.html#contact"><span class="tick" aria-hidden="true"></span><span class="lbl">Book a capture</span></a>
+  </div>
+</header>
+
+
+<main id="main" class="wrap">
+  <article class="doc">
+    <div class="doc__head">
+      <p class="mono">Legal</p>
+      <h1>Privacy Policy</h1>
+      <p class="doc__meta">
+        <span>Effective <span class="ph">[DATE]</span></span>
+        <span>Last updated <span class="ph">[DATE]</span></span>
+        <span>Version 1.0</span>
+      </p>
+    </div>
+
+    <p class="doc__intro">This policy explains what <strong>Flowstate</strong> (<span class="ph">[LEGAL ENTITY NAME]</span>) collects when you use this website or engage us for aerial capture, how we use it, how long we keep it, and what you can ask us to do with it. It covers both ordinary contact information and the <strong>site imagery</strong> we capture, which is often commercially sensitive.</p>
+
+    <nav class="toc" aria-label="Contents">
+      <h2>Contents</h2>
+      <ol>
+        <li><a href="#p1">Information we collect</a></li>
+        <li><a href="#p2">Site imagery and capture data</a></li>
+        <li><a href="#p3">How we use information</a></li>
+        <li><a href="#p4">Cookies and analytics</a></li>
+        <li><a href="#p5">Who we share with</a></li>
+        <li><a href="#p6">How long we keep it</a></li>
+        <li><a href="#p7">How we protect it</a></li>
+        <li><a href="#p8">Your choices and rights</a></li>
+        <li><a href="#p9">Incidental capture of people and property</a></li>
+        <li><a href="#p10">Children</a></li>
+        <li><a href="#p11">Changes to this policy</a></li>
+        <li><a href="#p12">Contact</a></li>
+      </ol>
+    </nav>
+
+    <section id="p1">
+      <h2><span class="num">01</span>Information we collect</h2>
+      <h3>Information you give us</h3>
+      <p>When you submit the contact form or email us, we collect the information you provide: name, company, email address, phone number, site address or city, approximate acreage, which package you are interested in, and anything you write in the notes field. All of it is used to quote and schedule work.</p>
+      <h3>Information collected automatically</h3>
+      <p>Our hosting provider keeps standard server logs — IP address, browser user agent, pages requested, timestamps, and referring page. These are used for security, abuse prevention and diagnosing faults.</p>
+      <h3>Information from engagement</h3>
+      <p>If you become a client, we hold the records needed to run the engagement: billing contact and address, invoices and payment records, scheduling correspondence, and site access details you give us.</p>
+      <p>We do not collect payment card numbers on this site. We do not buy personal information from data brokers, and <strong>we do not sell or share personal information</strong> for cross-context behavioural advertising.</p>
+    </section>
+
+    <section id="p2">
+      <h2><span class="num">02</span>Site imagery and capture data</h2>
+      <p>Aerial capture produces imagery of your job site along with flight logs, GPS positions and derived products such as orthomosaics, elevation models and measurements. This material can reveal site layout, construction progress, equipment locations and security-relevant detail, so we treat it as confidential client information rather than ordinary business data.</p>
+      <ul>
+        <li><strong>You own it.</strong> Ownership of captured imagery and derived products vests in you under our <a href="terms.html">Terms of Service</a>. We hold only the licence needed to process, host and deliver your reports.</li>
+        <li><strong>We do not publish it.</strong> Your site is never used in marketing, case studies, portfolio or social media without your prior written permission.</li>
+        <li><strong>Reports are unlisted.</strong> Hosted reports are served from long, randomly generated links and are excluded from search engine indexing. Anyone holding the link can view the report, so control who you send it to. You can ask us to revoke a link at any time.</li>
+      </ul>
+    </section>
+
+    <section id="p3">
+      <h2><span class="num">03</span>How we use information</h2>
+      <ul>
+        <li>To respond to enquiries, prepare quotes and schedule captures.</li>
+        <li>To plan flights, including checking airspace and travel distance for the site address you give us.</li>
+        <li>To process imagery and produce, host and deliver your reports.</li>
+        <li>To invoice, collect payment and keep accounting and tax records.</li>
+        <li>To provide support, re-process a report, or investigate a defect you report.</li>
+        <li>To secure our systems, prevent abuse and comply with legal obligations, including aviation record-keeping.</li>
+      </ul>
+      <p>We do not use your information for automated decision-making that produces legal or similarly significant effects, and we do not use client site imagery to develop or train third-party products.</p>
+    </section>
+
+    <section id="p4">
+      <h2><span class="num">04</span>Cookies and analytics</h2>
+      <p>This website does not set advertising or cross-site tracking cookies. <span class="ph">[If you add analytics — for example a privacy-focused tool such as Plausible or Fathom, or Google Analytics — name it here, say what it collects, and link to its policy. If you add anything that sets non-essential cookies, this section must also describe the consent mechanism.]</span></p>
+      <p>Your browser can be set to refuse cookies. Nothing on this site requires them to function.</p>
+    </section>
+
+    <section id="p5">
+      <h2><span class="num">05</span>Who we share with</h2>
+      <p>We do not sell personal information. We share it only with service providers who need it to deliver our services, each bound to protect it and use it only on our instructions:</p>
+      <ul>
+        <li><strong>Form processing</strong> — the provider that receives contact form submissions and forwards them to us. <span class="ph">[Name your form provider once connected.]</span></li>
+        <li><strong>Website and report hosting</strong> — the provider that serves this site and your hosted reports. <span class="ph">[Name your host.]</span></li>
+        <li><strong>Cloud storage and processing</strong> — where captured imagery is stored and processed. <span class="ph">[Name your storage provider.]</span></li>
+        <li><strong>Email, invoicing and accounting</strong> — for correspondence, invoices and financial records. <span class="ph">[Name these providers.]</span></li>
+      </ul>
+      <p>We may also disclose information where required by law, subpoena or lawful request from an aviation or public safety authority; to establish or defend legal claims; or, in the event of a sale or merger of the business, to the acquiring party under equivalent confidentiality terms.</p>
+    </section>
+
+    <section id="p6">
+      <h2><span class="num">06</span>How long we keep it</h2>
+      <dl>
+        <dt>Enquiries that do not become work</dt>
+        <dd>Deleted within 24 months of the last contact.</dd>
+        <dt>Raw captures and processing files</dt>
+        <dd>Retained 24 months from capture so a report can be rebuilt or re-processed, then deleted.</dd>
+        <dt>Delivered reports</dt>
+        <dd>Hosted for the duration of the engagement and 12 months after it ends.</dd>
+        <dt>Invoices and financial records</dt>
+        <dd>Retained as long as tax and accounting law requires, typically seven years.</dd>
+        <dt>Server logs</dt>
+        <dd>Retained for the short period our hosting provider keeps them, typically under 90 days.</dd>
+      </dl>
+      <p>You can ask us to delete captures or reports earlier than these periods. We will confirm deletion within 30 days, other than records we are legally required to keep.</p>
+    </section>
+
+    <section id="p7">
+      <h2><span class="num">07</span>How we protect it</h2>
+      <p>Imagery and reports are stored with encryption at rest, transmitted over encrypted connections, and access is limited to the people who need it to deliver the work. Report links are long and randomly generated so they cannot be guessed, and are excluded from search indexing.</p>
+      <p>No system is perfectly secure. If a breach affects your personal information or your site imagery, we will notify you without undue delay and provide what we know about the scope and our response.</p>
+    </section>
+
+    <section id="p8">
+      <h2><span class="num">08</span>Your choices and rights</h2>
+      <p>You can ask us at any time to:</p>
+      <ul>
+        <li>Tell you what information we hold about you.</li>
+        <li>Correct anything inaccurate.</li>
+        <li>Delete your information, or specific captures and reports.</li>
+        <li>Provide a copy of your imagery and derived products in a usable format.</li>
+        <li>Revoke a report link.</li>
+        <li>Withdraw permission previously given for portfolio or marketing use.</li>
+      </ul>
+      <p>Residents of states with comprehensive privacy laws — including California, Colorado, Connecticut, Utah and Virginia — have rights to access, correct, delete and obtain a portable copy of personal information, and to appeal a refused request. We do not sell personal information or use it for targeted advertising, so there is nothing to opt out of on that front. We will not discriminate against you for exercising any of these rights.</p>
+      <p>To make a request, email us using the address in Section 12. We may need to verify your identity before acting, and will respond within 45 days.</p>
+    </section>
+
+    <section id="p9">
+      <h2><span class="num">09</span>Incidental capture of people and property</h2>
+      <p>Aerial capture of a job site may incidentally include workers, vehicles, and neighbouring property visible from the air. We do not capture imagery for the purpose of identifying or monitoring individuals, we do not operate directly over people, and we do not use captured imagery for any form of surveillance of personnel.</p>
+      <p>If you or a neighbouring owner have a concern about imagery of a specific area or person, contact us and we will discuss masking that area in delivered products or excluding it from future captures.</p>
+    </section>
+
+    <section id="p10">
+      <h2><span class="num">10</span>Children</h2>
+      <p>This site and our services are directed to businesses, not to children. We do not knowingly collect personal information from anyone under 18. If you believe a child has provided us information, contact us and we will delete it.</p>
+    </section>
+
+    <section id="p11">
+      <h2><span class="num">11</span>Changes to this policy</h2>
+      <p>We may update this policy. The effective date at the top will change, and material changes affecting existing clients will be communicated directly.</p>
+    </section>
+
+    <section id="p12">
+      <h2><span class="num">12</span>Contact</h2>
+      <p>Questions or requests about this policy:</p>
+      <p><span class="ph">[LEGAL ENTITY NAME]</span> d/b/a Flowstate<br/>
+      <a class="ph" href="mailto:hello@flowstate.com">hello@flowstate.com</a><br/>
+      <span class="ph">(000) 000-0000</span><br/>
+      <span class="ph">[BUSINESS MAILING ADDRESS]</span></p>
+    </section>
+
+    <p class="doc__foot">Highlighted values are placeholders and must be completed before this page goes live — in particular, Sections 04 and 05 must name the actual providers you end up using. This policy is a starting draft, not legal advice, and should be reviewed by an attorney licensed in your state.</p>
+  </article>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="index.html#top">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <rect x="1.5" y="1.5" width="17" height="17" stroke="#4fb8d8" stroke-opacity=".55"/>
+            <path d="M10 4.4v3.1M10 12.5v3.1M4.4 10h3.1M12.5 10h3.1" stroke="#4fb8d8" stroke-width="1.1"/>
+            <circle cx="10" cy="10" r="2.6" stroke="#e8eef4" stroke-width="1.1"/>
+          </svg>
+          <b>Flowstate</b>
+        </a>
+        <p>Drone site documentation for contractors who were priced out of the enterprise platforms.</p>
+      </div>
+      <div>
+        <h3>Product</h3>
+        <ul>
+          <li><a href="index.html#pipeline">How it works</a></li>
+          <li><a href="index.html#packages">Packages</a></li>
+          <li><a href="index.html#trust">Compliance</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Legal</h3>
+        <ul>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Contact</h3>
+        <ul>
+          <li><a class="ph" href="mailto:hello@flowstate.com">hello@flowstate.com</a></li>
+          <li><a class="ph" href="tel:+10000000000">(000) 000-0000</a></li>
+          <li><a href="index.html#contact">Book a capture</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© <span id="year">2026</span> Flowstate. All rights reserved.</span>
+      <span>FAA Part 107 certificated remote pilot · <span class="ph">Service area</span></span>
+    </div>
+    <p class="foot-note">Measurements and volume figures in Flowstate reports are photogrammetric estimates for progress tracking. They are not a boundary or land survey and are not prepared by a licensed land surveyor.</p>
+  </div>
+</footer>
+
+<script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+</body>
+</html>
